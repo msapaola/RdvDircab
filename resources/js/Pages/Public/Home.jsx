@@ -106,32 +106,67 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Utiliser Inertia.js pour soumettre le formulaire
-        router.post('/appointments', formData, {
-            onSuccess: (page) => {
-                if (page.props.flash && page.props.flash.success) {
-                    setSubmitMessage({
-                        type: 'success',
-                        message: page.props.flash.success,
-                        trackingUrl: page.props.flash.tracking_url
-                    });
-                    setShowAppointmentModal(false);
-                    // Recharger le calendrier
-                    if (calendarRef.current) {
-                        calendarRef.current.getApi().refetchEvents();
-                    }
-                }
+        // Convertir FormData en objet pour l'envoi
+        const formDataObj = {};
+        for (let [key, value] of formData.entries()) {
+            if (key === 'attachments') {
+                if (!formDataObj[key]) formDataObj[key] = [];
+                formDataObj[key].push(value);
+            } else {
+                formDataObj[key] = value;
+            }
+        }
+
+        // Utiliser fetch directement avec les bons headers
+        fetch('/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            onError: (errors) => {
+            body: JSON.stringify(formDataObj),
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (response.status === 419) {
+                    throw new Error('Erreur CSRF - Page expirée. Veuillez rafraîchir la page.');
+                }
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Erreur de validation');
+                });
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.success) {
+                setSubmitMessage({
+                    type: 'success',
+                    message: result.message,
+                    trackingUrl: result.tracking_url
+                });
+                setShowAppointmentModal(false);
+                // Recharger le calendrier
+                if (calendarRef.current) {
+                    calendarRef.current.getApi().refetchEvents();
+                }
+            } else {
                 setSubmitMessage({
                     type: 'error',
-                    message: 'Veuillez corriger les erreurs dans le formulaire',
-                    errors: errors
+                    message: result.message || 'Une erreur est survenue',
+                    errors: result.errors
                 });
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
             }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            setSubmitMessage({
+                type: 'error',
+                message: error.message || 'Une erreur de connexion est survenue'
+            });
+        })
+        .finally(() => {
+            setIsSubmitting(false);
         });
     };
 

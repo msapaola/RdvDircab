@@ -84,7 +84,10 @@ class PublicController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
         }
 
         // Vérifier le rate limiting (max 3 demandes par email par jour)
@@ -93,21 +96,30 @@ class PublicController extends Controller
             ->count();
 
         if ($todayRequests >= 3) {
-            return back()->withErrors(['email' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.'])->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.'
+            ], 429);
         }
 
         // Vérifier si le créneau est disponible
         $preferredDateTime = Carbon::parse($request->preferred_date . ' ' . $request->preferred_time);
         
         if (!$this->isSlotAvailable($request->preferred_date, $request->preferred_time)) {
-            return back()->withErrors(['preferred_time' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.'])->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.'
+            ], 422);
         }
 
         // Vérifier la règle des 24h (sauf urgence)
         if ($request->priority !== 'urgent') {
             $minAdvance = Carbon::now()->addDay();
             if ($preferredDateTime->lt($minAdvance)) {
-                return back()->withErrors(['preferred_date' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).'])->withInput();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).'
+                ], 422);
             }
         }
 
@@ -143,8 +155,11 @@ class PublicController extends Controller
         // Envoyer l'email de confirmation (sera implémenté plus tard)
         // Mail::to($appointment->email)->send(new AppointmentConfirmation($appointment));
 
-        return back()->with('success', 'Votre demande a été soumise avec succès. Vous recevrez un email de confirmation avec un lien de suivi.')
-                    ->with('tracking_url', $appointment->tracking_url);
+        return response()->json([
+            'success' => true,
+            'message' => 'Votre demande a été soumise avec succès. Vous recevrez un email de confirmation avec un lien de suivi.',
+            'tracking_url' => $appointment->tracking_url,
+        ]);
     }
 
     /**
