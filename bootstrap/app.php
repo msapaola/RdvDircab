@@ -16,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        //
+        // Enregistrer le middleware de limitation des rendez-vous
+        $middleware->alias([
+            'throttle.appointments' => \App\Http\Middleware\ThrottleAppointments::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
