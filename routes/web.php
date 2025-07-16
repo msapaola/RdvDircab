@@ -21,9 +21,13 @@ use Inertia\Inertia;
 // Routes publiques
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/tracking/{token}', [PublicController::class, 'tracking'])->name('appointments.tracking');
+
+// Route pour les rendez-vous sans CSRF (temporaire)
 Route::post('/appointments', [PublicController::class, 'store'])
-    ->middleware('throttle.appointments')
+    ->middleware(['web', 'throttle.appointments'])
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
     ->name('appointments.store');
+
 Route::post('/appointments/{token}/cancel', [PublicController::class, 'cancel'])->name('appointments.cancel');
 
 // Route de bienvenue (redirige vers l'accueil public)
