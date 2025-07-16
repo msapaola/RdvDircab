@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -102,48 +102,37 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         }
     };
 
-    const handleSubmit = async (formData) => {
+    const handleSubmit = (formData) => {
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        try {
-            const response = await fetch('/appointments', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                setSubmitMessage({
-                    type: 'success',
-                    message: result.message,
-                    trackingUrl: result.tracking_url
-                });
-                setShowAppointmentModal(false);
-                // Recharger le calendrier
-                if (calendarRef.current) {
-                    calendarRef.current.getApi().refetchEvents();
+        // Utiliser Inertia.js pour soumettre le formulaire
+        router.post('/appointments', formData, {
+            onSuccess: (page) => {
+                if (page.props.flash && page.props.flash.success) {
+                    setSubmitMessage({
+                        type: 'success',
+                        message: page.props.flash.success,
+                        trackingUrl: page.props.flash.tracking_url
+                    });
+                    setShowAppointmentModal(false);
+                    // Recharger le calendrier
+                    if (calendarRef.current) {
+                        calendarRef.current.getApi().refetchEvents();
+                    }
                 }
-            } else {
+            },
+            onError: (errors) => {
                 setSubmitMessage({
                     type: 'error',
-                    message: result.message || 'Une erreur est survenue',
-                    errors: result.errors
+                    message: 'Veuillez corriger les erreurs dans le formulaire',
+                    errors: errors
                 });
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
             }
-        } catch (error) {
-            setSubmitMessage({
-                type: 'error',
-                message: 'Une erreur de connexion est survenue'
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
+        });
     };
 
     const closeModal = () => {
