@@ -22,9 +22,10 @@ use Inertia\Inertia;
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/tracking/{token}', [PublicController::class, 'tracking'])->name('appointments.tracking');
 
-// Route pour les rendez-vous SANS middleware web (pour éviter CSRF)
+// Route pour les rendez-vous avec middleware personnalisé (sans CSRF)
 Route::post('/appointments', [PublicController::class, 'store'])
     ->middleware(['throttle.appointments'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('appointments.store');
 
 Route::post('/appointments/{token}/cancel', [PublicController::class, 'cancel'])->name('appointments.cancel');

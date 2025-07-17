@@ -19,10 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Enregistrer les middlewares personnalisés
         $middleware->alias([
             'throttle.appointments' => \App\Http\Middleware\ThrottleAppointments::class,
+            'disable.csrf.appointments' => \App\Http\Middleware\DisableCsrfForAppointments::class,
         ]);
 
-        // Ne pas appliquer CSRF globalement - laisser les exclusions du middleware gérer
-        // Le middleware VerifyCsrfToken a déjà les bonnes exclusions dans $except
+        // Apply custom middleware to disable CSRF for appointments
+        $middleware->prependToGroup('web', \App\Http\Middleware\DisableCsrfForAppointments::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
