@@ -11,21 +11,13 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        // Créer un FormData pour gérer les fichiers
-        const formData = new FormData();
+        // Créer un objet avec les données du formulaire
+        const formData = {
+            ...form.data,
+            attachments: attachments
+        };
         
-        // Ajouter les données du formulaire
-        Object.keys(form.data).forEach(key => {
-            if (key !== 'attachments') {
-                formData.append(key, form.data[key]);
-            }
-        });
-        
-        // Ajouter les fichiers
-        attachments.forEach((file, index) => {
-            formData.append(`attachments[${index}]`, file);
-        });
-        
+        console.log('Soumission du formulaire:', formData);
         onSubmit(formData);
     };
 
