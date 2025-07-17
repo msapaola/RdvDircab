@@ -21,10 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.appointments' => \App\Http\Middleware\ThrottleAppointments::class,
         ]);
 
-        // S'assurer que VerifyCsrfToken est correctement configuré
-        $middleware->web(prepend: [
-            \App\Http\Middleware\VerifyCsrfToken::class,
-        ]);
+        // Ne pas appliquer CSRF globalement - laisser les exclusions du middleware gérer
+        // Le middleware VerifyCsrfToken a déjà les bonnes exclusions dans $except
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
