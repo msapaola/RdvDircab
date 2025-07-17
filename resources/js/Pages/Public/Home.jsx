@@ -106,16 +106,27 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Convertir FormData en objet pour l'envoi
-        const formDataObj = {};
-        for (let [key, value] of formData.entries()) {
-            if (key === 'attachments') {
-                if (!formDataObj[key]) formDataObj[key] = [];
-                formDataObj[key].push(value);
-            } else {
-                formDataObj[key] = value;
+        // Si formData est déjà un objet (données du formulaire), l'utiliser directement
+        // Sinon, c'est un FormData et on doit le convertir
+        let dataToSend;
+        
+        if (formData instanceof FormData) {
+            // Convertir FormData en objet pour l'envoi
+            dataToSend = {};
+            for (let [key, value] of formData.entries()) {
+                if (key === 'attachments') {
+                    if (!dataToSend[key]) dataToSend[key] = [];
+                    dataToSend[key].push(value);
+                } else {
+                    dataToSend[key] = value;
+                }
             }
+        } else {
+            // formData est déjà un objet
+            dataToSend = formData;
         }
+
+        console.log('Données à envoyer:', dataToSend);
 
         // Utiliser fetch directement avec les bons headers
         fetch('/appointments', {
@@ -125,9 +136,10 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            body: JSON.stringify(formDataObj),
+            body: JSON.stringify(dataToSend),
         })
         .then(response => {
+            console.log('Réponse reçue:', response.status, response.statusText);
             if (!response.ok) {
                 if (response.status === 419) {
                     throw new Error('Erreur CSRF - Page expirée. Veuillez rafraîchir la page.');
@@ -139,6 +151,7 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
             return response.json();
         })
         .then(result => {
+            console.log('Résultat:', result);
             if (result.success) {
                 setSubmitMessage({
                     type: 'success',
@@ -372,18 +385,13 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         onSubmit={handleSubmit}
                         isSubmitting={isSubmitting}
                         selectedSlot={selectedSlot}
+                        onCancel={closeModal}
                     />
 
                     <div className="mt-6 flex justify-end space-x-3">
                         <SecondaryButton onClick={closeModal}>
                             Annuler
                         </SecondaryButton>
-                        <PrimaryButton
-                            onClick={() => handleSubmit(appointmentForm.data)}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Envoi en cours...' : 'Soumettre la demande'}
-                        </PrimaryButton>
                     </div>
                 </div>
             </Modal>
