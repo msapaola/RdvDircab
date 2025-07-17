@@ -1,0 +1,38 @@
+🚀 UPLOAD INSTRUCTIONS - Fix Vite Manifest Error
+
+IMMEDIATE ACTION REQUIRED:
+Your Laravel app is missing the built assets. Here's how to fix it:
+
+STEP 1: Build Assets Locally (if not already done)
+- Run: npm run build
+- This creates the public/build/ directory with all needed files
+
+STEP 2: Upload to Server
+Upload the ENTIRE "public/build/" directory to your server at:
+/home/u546312304/domains/green-wolverine-495039.hostingersite.com/public_html/public/build/
+
+STEP 3: Verify Upload
+After uploading, check that these files exist on your server:
+✅ public_html/public/build/manifest.json
+✅ public_html/public/build/assets/ (directory with JS/CSS files)
+
+STEP 4: Clear Laravel Caches
+Run these commands on your server:
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+STEP 5: Test
+Visit your website - the error should be gone!
+
+ALTERNATIVE: If you can't upload files
+1. Upload server-diagnostic.php to your server
+2. Run: php server-diagnostic.php
+3. Share the output for help
+
+QUICK CHECK:
+- The error shows Laravel is looking for: /public_html/public/build/manifest.json
+- Make sure you upload to the EXACT path: public_html/public/build/
+- Not just: public_html/build/
+
+Need help? Upload the server-diagnostic.php file and run it on your server! 

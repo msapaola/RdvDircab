@@ -14,7 +14,7 @@
                 build: {
                     outDir: 'public/build',
                     assetsDir: 'assets',
-                    manifest: true,
+                    manifest: 'manifest.json',
                     rollupOptions: {
                         output: {
                             assetFileNames: 'assets/[name]-[hash][extname]',
