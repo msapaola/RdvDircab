@@ -106,26 +106,15 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Convertir FormData en objet pour l'envoi
-        const formDataObj = {};
-        for (let [key, value] of formData.entries()) {
-            if (key === 'attachments') {
-                if (!formDataObj[key]) formDataObj[key] = [];
-                formDataObj[key].push(value);
-            } else {
-                formDataObj[key] = value;
-            }
-        }
-
-        // Utiliser fetch directement avec les bons headers
+        // Envoyer directement le FormData (qui contient déjà les fichiers)
         fetch('/appointments', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
+                // Ne pas définir Content-Type pour FormData avec fichiers
             },
-            body: JSON.stringify(formDataObj),
+            body: formData, // Envoyer directement le FormData
         })
         .then(response => {
             if (!response.ok) {
@@ -372,19 +361,8 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         onSubmit={handleSubmit}
                         isSubmitting={isSubmitting}
                         selectedSlot={selectedSlot}
+                        onCancel={closeModal}
                     />
-
-                    <div className="mt-6 flex justify-end space-x-3">
-                        <SecondaryButton onClick={closeModal}>
-                            Annuler
-                        </SecondaryButton>
-                        <PrimaryButton
-                            onClick={() => handleSubmit(appointmentForm.data)}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Envoi en cours...' : 'Soumettre la demande'}
-                        </PrimaryButton>
-                    </div>
                 </div>
             </Modal>
         </>
