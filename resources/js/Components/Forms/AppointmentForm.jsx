@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function AppointmentForm({ form, onSubmit, isSubmitting, selectedSlot, onCancel }) {
+export default function AppointmentForm({ form, onSubmit, isSubmitting, selectedSlot }) {
     const [attachments, setAttachments] = useState([]);
 
     const handleSubmit = (e) => {
@@ -300,18 +298,6 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                     </div>
                 </div>
             )}
-
-            {/* Boutons de soumission */}
-            <div className="flex justify-end space-x-3 pt-6">
-                {onCancel && (
-                    <SecondaryButton type="button" onClick={onCancel}>
-                        Annuler
-                    </SecondaryButton>
-                )}
-                <PrimaryButton type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Envoi en cours...' : 'Soumettre la demande'}
-                </PrimaryButton>
-            </div>
         </form>
     );
 } 
