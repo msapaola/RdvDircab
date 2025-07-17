@@ -106,7 +106,27 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        console.log('Données à envoyer:', formData);
+        // Si formData est déjà un objet (données du formulaire), l'utiliser directement
+        // Sinon, c'est un FormData et on doit le convertir
+        let dataToSend;
+        
+        if (formData instanceof FormData) {
+            // Convertir FormData en objet pour l'envoi
+            dataToSend = {};
+            for (let [key, value] of formData.entries()) {
+                if (key === 'attachments') {
+                    if (!dataToSend[key]) dataToSend[key] = [];
+                    dataToSend[key].push(value);
+                } else {
+                    dataToSend[key] = value;
+                }
+            }
+        } else {
+            // formData est déjà un objet
+            dataToSend = formData;
+        }
+
+        console.log('Données à envoyer:', dataToSend);
 
         // Utiliser fetch directement avec les bons headers
         fetch('/appointments', {
@@ -116,7 +136,7 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(dataToSend),
         })
         .then(response => {
             console.log('Réponse reçue:', response.status, response.statusText);
@@ -367,6 +387,12 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         selectedSlot={selectedSlot}
                         onCancel={closeModal}
                     />
+
+                    <div className="mt-6 flex justify-end space-x-3">
+                        <SecondaryButton onClick={closeModal}>
+                            Annuler
+                        </SecondaryButton>
+                    </div>
                 </div>
             </Modal>
         </>

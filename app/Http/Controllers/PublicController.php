@@ -69,13 +69,6 @@ class PublicController extends Controller
      */
     public function store(Request $request)
     {
-        // Log de débogage
-        \Log::info('Tentative de création de rendez-vous', [
-            'data' => $request->all(),
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent()
-        ]);
-
         // Validation des données
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -83,7 +76,7 @@ class PublicController extends Controller
             'phone' => 'required|string|max:20',
             'subject' => 'required|string|max:255',
             'message' => 'nullable|string|max:1000',
-            'preferred_date' => 'required|date|after_or_equal:today',
+            'preferred_date' => 'required|date|after:today',
             'preferred_time' => 'required|date_format:H:i',
             'priority' => 'required|in:normal,urgent,official',
             'attachments' => 'nullable|array|max:5',
@@ -91,7 +84,6 @@ class PublicController extends Controller
         ]);
 
         if ($validator->fails()) {
-            \Log::warning('Validation échouée', ['errors' => $validator->errors()]);
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
@@ -104,7 +96,6 @@ class PublicController extends Controller
             ->count();
 
         if ($todayRequests >= 3) {
-            \Log::warning('Limite de taux dépassée', ['email' => $request->email]);
             return response()->json([
                 'success' => false,
                 'message' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.'
@@ -115,10 +106,6 @@ class PublicController extends Controller
         $preferredDateTime = Carbon::parse($request->preferred_date . ' ' . $request->preferred_time);
         
         if (!$this->isSlotAvailable($request->preferred_date, $request->preferred_time)) {
-            \Log::warning('Créneau indisponible', [
-                'date' => $request->preferred_date,
-                'time' => $request->preferred_time
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.'
@@ -129,11 +116,6 @@ class PublicController extends Controller
         if ($request->priority !== 'urgent') {
             $minAdvance = Carbon::now()->addDay();
             if ($preferredDateTime->lt($minAdvance)) {
-                \Log::warning('Délai insuffisant pour rendez-vous non urgent', [
-                    'preferred_date' => $request->preferred_date,
-                    'preferred_time' => $request->preferred_time,
-                    'priority' => $request->priority
-                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).'
@@ -141,61 +123,43 @@ class PublicController extends Controller
             }
         }
 
-        try {
-            // Traiter les pièces jointes
-            $attachments = [];
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('appointments/attachments', 'public');
-                    $attachments[] = [
-                        'name' => $file->getClientOriginalName(),
-                        'path' => $path,
-                        'size' => $file->getSize(),
-                        'type' => $file->getMimeType(),
-                    ];
-                }
+        // Traiter les pièces jointes
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('appointments/attachments', 'public');
+                $attachments[] = [
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'type' => $file->getMimeType(),
+                ];
             }
-
-            // Créer le rendez-vous
-            $appointment = Appointment::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'subject' => $request->subject,
-                'message' => $request->message,
-                'preferred_date' => $request->preferred_date,
-                'preferred_time' => $request->preferred_time,
-                'priority' => $request->priority,
-                'attachments' => $attachments,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
-
-            \Log::info('Rendez-vous créé avec succès', [
-                'appointment_id' => $appointment->id,
-                'email' => $appointment->email
-            ]);
-
-            // Envoyer l'email de confirmation (sera implémenté plus tard)
-            // Mail::to($appointment->email)->send(new AppointmentConfirmation($appointment));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Votre demande a été soumise avec succès. Vous recevrez un email de confirmation avec un lien de suivi.',
-                'tracking_url' => $appointment->tracking_url,
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur lors de la création du rendez-vous', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Une erreur est survenue lors de la création de votre rendez-vous. Veuillez réessayer.'
-            ], 500);
         }
+
+        // Créer le rendez-vous
+        $appointment = Appointment::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'subject' => $request->subject,
+            'message' => $request->message,
+            'preferred_date' => $request->preferred_date,
+            'preferred_time' => $request->preferred_time,
+            'priority' => $request->priority,
+            'attachments' => $attachments,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        // Envoyer l'email de confirmation (sera implémenté plus tard)
+        // Mail::to($appointment->email)->send(new AppointmentConfirmation($appointment));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Votre demande a été soumise avec succès. Vous recevrez un email de confirmation avec un lien de suivi.',
+            'tracking_url' => $appointment->tracking_url,
+        ]);
     }
 
     /**
