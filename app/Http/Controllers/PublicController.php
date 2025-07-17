@@ -69,6 +69,15 @@ class PublicController extends Controller
      */
     public function store(Request $request)
     {
+        // Log de débogage
+        \Log::info('Appointment submission attempt', [
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'headers' => $request->headers->all(),
+            'method' => $request->method(),
+            'url' => $request->url(),
+        ]);
+
         // Validation des données
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -84,6 +93,11 @@ class PublicController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::warning('Appointment validation failed', [
+                'errors' => $validator->errors()->toArray(),
+                'data' => $request->except(['attachments']),
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
@@ -96,6 +110,11 @@ class PublicController extends Controller
             ->count();
 
         if ($todayRequests >= 3) {
+            \Log::warning('Rate limit exceeded', [
+                'email' => $request->email,
+                'requests_today' => $todayRequests,
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.'
@@ -106,6 +125,11 @@ class PublicController extends Controller
         $preferredDateTime = Carbon::parse($request->preferred_date . ' ' . $request->preferred_time);
         
         if (!$this->isSlotAvailable($request->preferred_date, $request->preferred_time)) {
+            \Log::warning('Slot not available', [
+                'date' => $request->preferred_date,
+                'time' => $request->preferred_time,
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.'
@@ -116,6 +140,12 @@ class PublicController extends Controller
         if ($request->priority !== 'urgent') {
             $minAdvance = Carbon::now()->addDay();
             if ($preferredDateTime->lt($minAdvance)) {
+                \Log::warning('Appointment too soon', [
+                    'preferred_date' => $request->preferred_date,
+                    'preferred_time' => $request->preferred_time,
+                    'priority' => $request->priority,
+                ]);
+                
                 return response()->json([
                     'success' => false,
                     'message' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).'
@@ -150,6 +180,12 @@ class PublicController extends Controller
             'attachments' => $attachments,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
+        ]);
+
+        \Log::info('Appointment created successfully', [
+            'appointment_id' => $appointment->id,
+            'email' => $appointment->email,
+            'subject' => $appointment->subject,
         ]);
 
         // Envoyer l'email de confirmation (sera implémenté plus tard)

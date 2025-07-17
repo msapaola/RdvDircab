@@ -1,158 +1,261 @@
 <?php
 
-// Script de diagnostic complet pour le problème CSRF/Inertia.js
-echo "=== Diagnostic Complet CSRF/Inertia.js ===\n\n";
+// Script de diagnostic complet pour l'erreur CSRF
+echo "=== Diagnostic Complet - Erreur CSRF ===\n\n";
 
-$publicHtml = __DIR__;
+// 1. Vérifier la configuration Laravel
+echo "1. Configuration Laravel:\n";
+echo "   APP_ENV: " . (getenv('APP_ENV') ?: 'non défini') . "\n";
+echo "   APP_DEBUG: " . (getenv('APP_DEBUG') ?: 'non défini') . "\n";
+echo "   APP_URL: " . (getenv('APP_URL') ?: 'non défini') . "\n";
 
-echo "1. Vérification de la version des assets...\n";
-$manifestPath = $publicHtml . '/public/build/manifest.json';
-if (file_exists($manifestPath)) {
-    $manifest = json_decode(file_get_contents($manifestPath), true);
-    if ($manifest && isset($manifest['resources/js/app.jsx'])) {
-        $appHash = basename($manifest['resources/js/app.jsx']['file'], '.js');
-        echo "   📦 Hash de l'app: $appHash\n";
-        
-        // Vérifier si c'est la dernière version
-        if (strpos($appHash, 'C6d5PNWI') !== false) {
-            echo "   ✅ Assets à jour (C6d5PNWI)\n";
-        } else {
-            echo "   ⚠️  Assets potentiellement obsolètes\n";
+// 2. Vérifier les middlewares actifs
+echo "\n2. Middlewares actifs:\n";
+
+// Lire le fichier bootstrap/app.php
+$bootstrapFile = 'bootstrap/app.php';
+if (file_exists($bootstrapFile)) {
+    $content = file_get_contents($bootstrapFile);
+    
+    // Chercher les middlewares web
+    if (preg_match_all('/web\([^)]*\)/', $content, $matches)) {
+        foreach ($matches[0] as $match) {
+            echo "   Middleware web: $match\n";
+        }
+    }
+    
+    // Chercher les middlewares prepend
+    if (preg_match_all('/prepend:\s*\[([^\]]+)\]/', $content, $matches)) {
+        foreach ($matches[1] as $match) {
+            echo "   Prepend: $match\n";
+        }
+    }
+    
+    // Chercher les middlewares append
+    if (preg_match_all('/append:\s*\[([^\]]+)\]/', $content, $matches)) {
+        foreach ($matches[1] as $match) {
+            echo "   Append: $match\n";
         }
     }
 } else {
-    echo "   ❌ Manifest.json non trouvé\n";
+    echo "   ❌ Fichier bootstrap/app.php non trouvé\n";
 }
 
-echo "\n2. Vérification de la configuration Inertia.js...\n";
-
-// Vérifier le fichier app.jsx
-$appJsxPath = $publicHtml . '/resources/js/app.jsx';
-if (file_exists($appJsxPath)) {
-    $content = file_get_contents($appJsxPath);
-    if (strpos($content, '@inertiajs/react') !== false) {
-        echo "   ✅ Inertia.js configuré dans app.jsx\n";
+// 3. Vérifier les routes
+echo "\n3. Routes définies:\n";
+$routesFile = 'routes/web.php';
+if (file_exists($routesFile)) {
+    $content = file_get_contents($routesFile);
+    
+    // Chercher la route appointments
+    if (preg_match('/Route::post\(\'\/appointments\',\s*\[([^\]]+)\]\s*\)([^;]+);/', $content, $matches)) {
+        echo "   Route /appointments trouvée:\n";
+        echo "   Controller: " . $matches[1] . "\n";
+        echo "   Options: " . $matches[2] . "\n";
+        
+        // Vérifier les middlewares
+        if (strpos($matches[2], 'middleware') !== false) {
+            if (preg_match('/middleware\(\[([^\]]+)\]\)/', $matches[2], $middlewareMatches)) {
+                echo "   Middlewares: " . $middlewareMatches[1] . "\n";
+            }
+        }
+        
+        if (strpos($matches[2], 'withoutMiddleware') !== false) {
+            echo "   ⚠️ withoutMiddleware détecté\n";
+        }
     } else {
-        echo "   ❌ Inertia.js non configuré dans app.jsx\n";
+        echo "   ❌ Route /appointments non trouvée\n";
     }
 } else {
-    echo "   ❌ app.jsx non trouvé\n";
+    echo "   ❌ Fichier routes/web.php non trouvé\n";
 }
 
-echo "\n3. Vérification du middleware HandleInertiaRequests...\n";
-$inertiaMiddlewarePath = $publicHtml . '/app/Http/Middleware/HandleInertiaRequests.php';
-if (file_exists($inertiaMiddlewarePath)) {
-    echo "   ✅ Middleware HandleInertiaRequests trouvé\n";
-    $content = file_get_contents($inertiaMiddlewarePath);
-    if (strpos($content, 'csrf-token') !== false) {
-        echo "   ✅ CSRF token configuré dans Inertia\n";
-    } else {
-        echo "   ❌ CSRF token non configuré dans Inertia\n";
-    }
-} else {
-    echo "   ❌ Middleware HandleInertiaRequests manquant\n";
-}
+// 4. Test de la route avec différents headers
+echo "\n4. Test de la route avec différents headers:\n";
 
-echo "\n4. Vérification de la route appointments...\n";
-$routes = system('php artisan route:list --name=appointments');
-if (strpos($routes, 'appointments.store') !== false) {
-    echo "   ✅ Route appointments.store trouvée\n";
-    if (strpos($routes, 'withoutMiddleware') !== false) {
-        echo "   ✅ CSRF désactivé pour cette route\n";
-    } else {
-        echo "   ⚠️  CSRF potentiellement actif\n";
-    }
-} else {
-    echo "   ❌ Route appointments.store non trouvée\n";
-}
+$url = 'https://green-wolverine-495039.hostingersite.com/appointments';
+$testData = [
+    'name' => 'Test Diagnostic',
+    'email' => 'test@diagnostic.com',
+    'phone' => '+243123456789',
+    'subject' => 'Test diagnostic',
+    'preferred_date' => date('Y-m-d', strtotime('+2 days')),
+    'preferred_time' => '10:00',
+    'priority' => 'normal',
+];
 
-echo "\n5. Test de la route avec différents headers...\n";
-
-$testUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/appointments';
-$testData = 'name=test&email=test@test.com&phone=123&subject=test&preferred_date=2025-07-20&preferred_time=10:00&priority=normal';
-
-// Test 1: Avec headers Inertia.js
-echo "   Test 1 - Headers Inertia.js:\n";
+// Test 1: Sans headers spéciaux
+echo "   Test 1 - Sans headers spéciaux:\n";
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $testUrl);
+curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $testData);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($testData));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HEADER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_USERAGENT, 'Diagnostic/1.0');
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+$body = substr($response, $headerSize);
+curl_close($ch);
+
+echo "     Code HTTP: $httpCode\n";
+if ($httpCode === 419) {
+    echo "     ❌ Erreur CSRF (419)\n";
+} else {
+    echo "     ✅ Pas d'erreur CSRF\n";
+}
+
+// Test 2: Avec headers AJAX
+echo "   Test 2 - Avec headers AJAX:\n";
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($testData));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HEADER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_USERAGENT, 'Diagnostic/1.0');
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/x-www-form-urlencoded',
+    'Accept: application/json',
     'X-Requested-With: XMLHttpRequest',
-    'X-Inertia: true',
-    'Accept: text/html, application/xhtml+xml',
-]);
-
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-
-echo "      Code HTTP: $httpCode\n";
-
-// Test 2: Sans headers Inertia.js
-echo "   Test 2 - Sans headers Inertia.js:\n";
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $testUrl);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $testData);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HEADER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Content-Type: application/x-www-form-urlencoded',
 ]);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+$body = substr($response, $headerSize);
 curl_close($ch);
 
-echo "      Code HTTP: $httpCode\n";
-
-echo "\n6. Vérification des logs d'erreur...\n";
-$logPath = $publicHtml . '/storage/logs/laravel.log';
-if (file_exists($logPath)) {
-    $lastLines = system('tail -n 20 storage/logs/laravel.log');
-    echo "   📋 Dernières lignes du log:\n";
-    echo "      " . str_replace("\n", "\n      ", $lastLines) . "\n";
+echo "     Code HTTP: $httpCode\n";
+if ($httpCode === 419) {
+    echo "     ❌ Erreur CSRF (419)\n";
 } else {
-    echo "   ❌ Fichier de log non trouvé\n";
+    echo "     ✅ Pas d'erreur CSRF\n";
 }
 
-echo "\n7. Vérification de la session...\n";
-$sessionPath = $publicHtml . '/storage/framework/sessions';
-if (is_dir($sessionPath)) {
-    $sessionFiles = glob($sessionPath . '/*');
-    echo "   📁 Nombre de fichiers de session: " . count($sessionFiles) . "\n";
-    if (count($sessionFiles) > 0) {
-        echo "   ✅ Sessions actives\n";
+// Test 3: Avec token CSRF (si disponible)
+echo "   Test 3 - Avec token CSRF:\n";
+
+// Essayer de récupérer un token CSRF
+$csrfUrl = 'https://green-wolverine-495039.hostingersite.com/sanctum/csrf-cookie';
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $csrfUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HEADER, true);
+curl_setopt($ch, CURLOPT_COOKIEJAR, 'cookies.txt');
+curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_USERAGENT, 'Diagnostic/1.0');
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+echo "     Récupération token CSRF - Code HTTP: $httpCode\n";
+
+if ($httpCode === 204) {
+    echo "     ✅ Token CSRF récupéré\n";
+    
+    // Maintenant tester avec le token
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($testData));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_COOKIEFILE, 'cookies.txt');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Diagnostic/1.0');
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Accept: application/json',
+        'X-Requested-With: XMLHttpRequest',
+        'Content-Type: application/x-www-form-urlencoded',
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    $body = substr($response, $headerSize);
+    curl_close($ch);
+
+    echo "     Test avec token - Code HTTP: $httpCode\n";
+    if ($httpCode === 419) {
+        echo "     ❌ Erreur CSRF même avec token\n";
     } else {
-        echo "   ⚠️  Aucune session active\n";
+        echo "     ✅ Pas d'erreur CSRF avec token\n";
     }
 } else {
-    echo "   ❌ Dossier de sessions non trouvé\n";
+    echo "     ❌ Impossible de récupérer le token CSRF\n";
 }
 
-echo "\n8. Vérification de la configuration de session...\n";
-$configPath = $publicHtml . '/config/session.php';
-if (file_exists($configPath)) {
-    echo "   ✅ Configuration de session trouvée\n";
+// 5. Vérifier les logs Laravel
+echo "\n5. Logs Laravel récents:\n";
+$logFiles = [
+    storage_path('logs/laravel.log'),
+    storage_path('logs/laravel-' . date('Y-m-d') . '.log'),
+];
+
+foreach ($logFiles as $logFile) {
+    if (file_exists($logFile)) {
+        echo "   📄 Log file: $logFile\n";
+        $logContent = file_get_contents($logFile);
+        $lines = explode("\n", $logContent);
+        $recentLines = array_slice($lines, -20); // 20 dernières lignes
+        
+        $csrfErrors = 0;
+        foreach ($recentLines as $line) {
+            if (strpos($line, 'CSRF') !== false || strpos($line, '419') !== false) {
+                echo "     CSRF Error: " . trim($line) . "\n";
+                $csrfErrors++;
+            }
+        }
+        
+        if ($csrfErrors === 0) {
+            echo "     ✅ Aucune erreur CSRF dans les logs récents\n";
+        }
+    } else {
+        echo "   ❌ Log file non trouvé: $logFile\n";
+    }
+}
+
+// 6. Vérifier la configuration du middleware CSRF
+echo "\n6. Configuration du middleware CSRF:\n";
+
+$csrfMiddlewareFile = 'app/Http/Middleware/VerifyCsrfToken.php';
+if (file_exists($csrfMiddlewareFile)) {
+    $content = file_get_contents($csrfMiddlewareFile);
+    
+    // Chercher les exclusions
+    if (preg_match('/protected\s+\$except\s*=\s*\[([^\]]+)\]/', $content, $matches)) {
+        echo "   Exclusions CSRF: " . $matches[1] . "\n";
+    } else {
+        echo "   Aucune exclusion CSRF trouvée\n";
+    }
 } else {
-    echo "   ❌ Configuration de session manquante\n";
+    echo "   ❌ Fichier VerifyCsrfToken.php non trouvé\n";
 }
 
-echo "\n=== Diagnostic terminé ===\n";
-echo "🎯 Solutions possibles:\n";
-echo "   1. Si les assets sont obsolètes: npm run build\n";
-echo "   2. Si CSRF est actif: vérifiez routes/web.php\n";
-echo "   3. Si Inertia.js mal configuré: vérifiez app.jsx\n";
-echo "   4. Si problème de session: php artisan session:table\n\n";
+// 7. Recommandations
+echo "\n7. Recommandations:\n";
 
-echo "📝 Prochaines étapes:\n";
-echo "   1. Transférez les fichiers modifiés sur le serveur\n";
-echo "   2. Recompilez les assets: npm run build\n";
-echo "   3. Videz les caches: php artisan optimize:clear\n";
-echo "   4. Testez à nouveau le formulaire\n"; 
+if ($httpCode === 419) {
+    echo "   ❌ Le problème CSRF persiste\n";
+    echo "   Actions recommandées:\n";
+    echo "   1. Vérifiez que la route n'utilise PAS le middleware 'web'\n";
+    echo "   2. Vérifiez que le middleware CSRF est bien exclu\n";
+    echo "   3. Redémarrez le serveur web\n";
+    echo "   4. Vérifiez la configuration Apache/Nginx\n";
+} else {
+    echo "   ✅ Le problème CSRF semble résolu côté backend\n";
+    echo "   Le problème vient probablement du frontend\n";
+    echo "   Actions recommandées:\n";
+    echo "   1. Vérifiez la console du navigateur\n";
+    echo "   2. Vérifiez que les assets sont bien chargés\n";
+    echo "   3. Testez avec un formulaire HTML simple\n";
+}
+
+echo "\n=== Diagnostic terminé ===\n"; 

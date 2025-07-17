@@ -106,57 +106,89 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Envoyer directement le FormData (qui contient déjà les fichiers)
-        fetch('/appointments', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                // Ne pas définir Content-Type pour FormData avec fichiers
-            },
-            body: formData, // Envoyer directement le FormData
-        })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 419) {
-                    throw new Error('Erreur CSRF - Page expirée. Veuillez rafraîchir la page.');
+        // Utiliser XMLHttpRequest pour éviter les problèmes CSRF
+        const xhr = new XMLHttpRequest();
+        
+        xhr.open('POST', '/appointments', true);
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            if (xhr.status === 200 || xhr.status === 201) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    if (result.success) {
+                        setSubmitMessage({
+                            type: 'success',
+                            message: result.message,
+                            trackingUrl: result.tracking_url
+                        });
+                        setShowAppointmentModal(false);
+                        // Recharger le calendrier
+                        if (calendarRef.current) {
+                            calendarRef.current.getApi().refetchEvents();
+                        }
+                    } else {
+                        setSubmitMessage({
+                            type: 'error',
+                            message: result.message || 'Une erreur est survenue',
+                            errors: result.errors
+                        });
+                    }
+                } catch (e) {
+                    setSubmitMessage({
+                        type: 'error',
+                        message: 'Erreur de parsing de la réponse'
+                    });
                 }
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Erreur de validation');
-                });
-            }
-            return response.json();
-        })
-        .then(result => {
-            if (result.success) {
+            } else if (xhr.status === 419) {
                 setSubmitMessage({
-                    type: 'success',
-                    message: result.message,
-                    trackingUrl: result.tracking_url
+                    type: 'error',
+                    message: 'Erreur CSRF - Page expirée. Veuillez rafraîchir la page.'
                 });
-                setShowAppointmentModal(false);
-                // Recharger le calendrier
-                if (calendarRef.current) {
-                    calendarRef.current.getApi().refetchEvents();
+            } else if (xhr.status === 422) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    setSubmitMessage({
+                        type: 'error',
+                        message: 'Erreur de validation',
+                        errors: result.errors
+                    });
+                } catch (e) {
+                    setSubmitMessage({
+                        type: 'error',
+                        message: 'Erreur de validation'
+                    });
                 }
             } else {
                 setSubmitMessage({
                     type: 'error',
-                    message: result.message || 'Une erreur est survenue',
-                    errors: result.errors
+                    message: `Erreur serveur (${xhr.status}): ${xhr.statusText}`
                 });
             }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
+            setIsSubmitting(false);
+        };
+        
+        xhr.onerror = function() {
             setSubmitMessage({
                 type: 'error',
-                message: error.message || 'Une erreur de connexion est survenue'
+                message: 'Erreur de connexion au serveur'
             });
-        })
-        .finally(() => {
             setIsSubmitting(false);
-        });
+        };
+        
+        xhr.ontimeout = function() {
+            setSubmitMessage({
+                type: 'error',
+                message: 'Délai d\'attente dépassé'
+            });
+            setIsSubmitting(false);
+        };
+        
+        xhr.timeout = 30000; // 30 secondes
+        
+        // Envoyer le FormData
+        xhr.send(formData);
     };
 
     const closeModal = () => {
