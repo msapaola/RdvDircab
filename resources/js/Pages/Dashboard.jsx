@@ -9,6 +9,7 @@ import Modal from '@/Components/UI/Modal';
 export default function Dashboard({ stats, nextAppointments, statsByDay, appointments, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [rejectionReason, setRejectionReason] = useState('');
     const [cancelReason, setCancelReason] = useState('');
@@ -23,13 +24,19 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
         sort_order: filters?.sort_order || 'desc',
     });
 
+    const updateForm = useForm({
+        admin_notes: '',
+        preferred_date: '',
+        preferred_time: '',
+    });
+
     const handleFilter = () => {
-        filterForm.get(route('admin.appointments.index'));
+        filterForm.get(route('dashboard'));
     };
 
     const handleReset = () => {
         filterForm.reset();
-        router.get(route('admin.appointments.index'));
+        router.get(route('dashboard'));
     };
 
     const handleReject = () => {
@@ -68,6 +75,16 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
         }
     };
 
+    const handleUpdate = () => {
+        updateForm.put(route('admin.appointments.update', selectedAppointment.id), {
+            onSuccess: () => {
+                setShowUpdateModal(false);
+                setSelectedAppointment(null);
+                updateForm.reset();
+            },
+        });
+    };
+
     const openRejectModal = (appointment) => {
         setSelectedAppointment(appointment);
         setShowRejectModal(true);
@@ -76,6 +93,28 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
     const openCancelModal = (appointment) => {
         setSelectedAppointment(appointment);
         setShowCancelModal(true);
+    };
+
+    const openUpdateModal = (appointment) => {
+        setSelectedAppointment(appointment);
+        updateForm.setData({
+            admin_notes: appointment.admin_notes || '',
+            preferred_date: appointment.preferred_date,
+            preferred_time: appointment.preferred_time,
+        });
+        setShowUpdateModal(true);
+    };
+
+    const handleComplete = (appointment) => {
+        if (confirm('Marquer ce rendez-vous comme terminé ?')) {
+            router.post(route('admin.appointments.complete', appointment.id));
+        }
+    };
+
+    const handleDelete = (appointment) => {
+        if (confirm('Êtes-vous sûr de vouloir supprimer définitivement ce rendez-vous ?')) {
+            router.delete(route('admin.appointments.destroy', appointment.id));
+        }
     };
 
     return (
@@ -183,6 +222,45 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                 />
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                                <input
+                                    type="date"
+                                    value={filterForm.data.date_from}
+                                    onChange={(e) => filterForm.setData('date_from', e.target.value)}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                                <input
+                                    type="date"
+                                    value={filterForm.data.date_to}
+                                    onChange={(e) => filterForm.setData('date_to', e.target.value)}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tri</label>
+                                <select
+                                    value={`${filterForm.data.sort_by}-${filterForm.data.sort_order}`}
+                                    onChange={(e) => {
+                                        const [sortBy, sortOrder] = e.target.value.split('-');
+                                        filterForm.setData('sort_by', sortBy);
+                                        filterForm.setData('sort_order', sortOrder);
+                                    }}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    <option value="created_at-desc">Plus récents</option>
+                                    <option value="created_at-asc">Plus anciens</option>
+                                    <option value="preferred_date-asc">Date RDV (croissant)</option>
+                                    <option value="preferred_date-desc">Date RDV (décroissant)</option>
+                                    <option value="name-asc">Nom (A-Z)</option>
+                                    <option value="name-desc">Nom (Z-A)</option>
+                                </select>
+                            </div>
+                        </div>
                         <div className="flex space-x-3">
                             <PrimaryButton onClick={handleFilter}>
                                 Filtrer
@@ -193,118 +271,186 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                         </div>
                     </div>
 
-                    {/* Liste des rendez-vous récents */}
+                    {/* Gestion complète des rendez-vous */}
                     <div className="bg-white rounded-lg shadow p-6 mb-8">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900">Rendez-vous récents</h2>
-                            <Link
-                                href={route('admin.appointments.index')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                                Voir tous →
-                            </Link>
-                        </div>
-                        {appointments && appointments.data && appointments.data.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Demandeur
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Objet
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Priorité
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Statut
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {appointments.data.slice(0, 5).map((appointment) => (
-                                            <tr key={appointment.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">{appointment.name}</div>
-                                                        <div className="text-sm text-gray-500">{appointment.email}</div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">{appointment.preferred_date}</div>
-                                                    <div className="text-sm text-gray-500">{appointment.preferred_time}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900 truncate max-w-xs">{appointment.subject}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                        appointment.priority === 'urgent' ? 'bg-red-100 text-red-800' :
-                                                        appointment.priority === 'official' ? 'bg-blue-100 text-blue-800' :
-                                                        'bg-gray-100 text-gray-800'
-                                                    }`}>
-                                                        {appointment.formatted_priority}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <StatusBadge 
-                                                        status={appointment.formatted_status}
-                                                        color={
-                                                            appointment.status === 'pending' ? 'orange' :
-                                                            appointment.status === 'accepted' ? 'green' :
-                                                            appointment.status === 'rejected' ? 'red' :
-                                                            appointment.status === 'canceled' || appointment.status === 'canceled_by_requester' ? 'gray' :
-                                                            appointment.status === 'completed' ? 'blue' : 'gray'
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <div className="flex space-x-2">
-                                                        <Link
-                                                            href={route('admin.appointments.show', appointment.id)}
-                                                            className="text-blue-600 hover:text-blue-900"
-                                                        >
-                                                            Voir
-                                                        </Link>
-                                                        {appointment.status === 'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => handleAccept(appointment)}
-                                                                    className="text-green-600 hover:text-green-900"
-                                                                >
-                                                                    Accepter
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => openRejectModal(appointment)}
-                                                                    className="text-red-600 hover:text-red-900"
-                                                                >
-                                                                    Refuser
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => openCancelModal(appointment)}
-                                                                    className="text-gray-600 hover:text-gray-900"
-                                                                >
-                                                                    Annuler
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-lg font-semibold text-gray-900">Gestion des rendez-vous</h2>
+                            <div className="text-sm text-gray-500">
+                                {appointments && appointments.total ? `${appointments.total} rendez-vous trouvés` : 'Aucun rendez-vous'}
                             </div>
+                        </div>
+                        
+                        {appointments && appointments.data && appointments.data.length > 0 ? (
+                            <>
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Demandeur
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Date & Heure
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Objet
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Priorité
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Statut
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {appointments.data.map((appointment) => (
+                                                <tr key={appointment.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div>
+                                                            <div className="text-sm font-medium text-gray-900">{appointment.name}</div>
+                                                            <div className="text-sm text-gray-500">{appointment.email}</div>
+                                                            <div className="text-xs text-gray-400">{appointment.phone}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-900">{appointment.preferred_date}</div>
+                                                        <div className="text-sm text-gray-500">{appointment.preferred_time}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm text-gray-900 truncate max-w-xs">{appointment.subject}</div>
+                                                        {appointment.message && (
+                                                            <div className="text-xs text-gray-500 truncate max-w-xs mt-1">
+                                                                {appointment.message.substring(0, 50)}...
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                            appointment.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                                            appointment.priority === 'official' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                        }`}>
+                                                            {appointment.formatted_priority}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <StatusBadge 
+                                                            status={appointment.formatted_status}
+                                                            color={
+                                                                appointment.status === 'pending' ? 'orange' :
+                                                                appointment.status === 'accepted' ? 'green' :
+                                                                appointment.status === 'rejected' ? 'red' :
+                                                                appointment.status === 'canceled' || appointment.status === 'canceled_by_requester' ? 'gray' :
+                                                                appointment.status === 'completed' ? 'blue' : 'gray'
+                                                            }
+                                                        />
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Link
+                                                                href={route('admin.appointments.show', appointment.id)}
+                                                                className="text-blue-600 hover:text-blue-900 text-xs"
+                                                            >
+                                                                Voir détails
+                                                            </Link>
+                                                            
+                                                            {/* Actions selon le statut */}
+                                                            {appointment.status === 'pending' && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleAccept(appointment)}
+                                                                        className="text-green-600 hover:text-green-900 text-xs"
+                                                                    >
+                                                                        ✓ Accepter
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => openRejectModal(appointment)}
+                                                                        className="text-red-600 hover:text-red-900 text-xs"
+                                                                    >
+                                                                        ✗ Refuser
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => openCancelModal(appointment)}
+                                                                        className="text-gray-600 hover:text-gray-900 text-xs"
+                                                                    >
+                                                                        ⊗ Annuler
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            
+                                                            {appointment.status === 'accepted' && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => handleComplete(appointment)}
+                                                                        className="text-blue-600 hover:text-blue-900 text-xs"
+                                                                    >
+                                                                        ✓ Terminer
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => openCancelModal(appointment)}
+                                                                        className="text-gray-600 hover:text-gray-900 text-xs"
+                                                                    >
+                                                                        ⊗ Annuler
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            
+                                                            {/* Actions communes */}
+                                                            <button
+                                                                onClick={() => openUpdateModal(appointment)}
+                                                                className="text-purple-600 hover:text-purple-900 text-xs"
+                                                            >
+                                                                ✏️ Modifier
+                                                            </button>
+                                                            
+                                                            <button
+                                                                onClick={() => handleDelete(appointment)}
+                                                                className="text-red-600 hover:text-red-900 text-xs"
+                                                            >
+                                                                🗑️ Supprimer
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Pagination */}
+                                {appointments.links && appointments.links.length > 3 && (
+                                    <div className="mt-6 flex items-center justify-between">
+                                        <div className="text-sm text-gray-700">
+                                            Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            {appointments.links.map((link, index) => (
+                                                <Link
+                                                    key={index}
+                                                    href={link.url}
+                                                    className={`px-3 py-2 text-sm rounded-md ${
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : link.url
+                                                            ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         ) : (
-                            <div className="text-gray-500 text-center py-8">Aucun rendez-vous trouvé.</div>
+                            <div className="text-gray-500 text-center py-8">
+                                <div className="text-lg font-medium mb-2">Aucun rendez-vous trouvé</div>
+                                <div className="text-sm">Essayez de modifier vos filtres ou créez un nouveau rendez-vous.</div>
+                            </div>
                         )}
                     </div>
 
@@ -388,6 +534,51 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                         </SecondaryButton>
                         <PrimaryButton onClick={handleCancel}>
                             Confirmer l'annulation
+                        </PrimaryButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal de modification */}
+            <Modal show={showUpdateModal} onClose={() => setShowUpdateModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Modifier le rendez-vous</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date préférée</label>
+                            <input
+                                type="date"
+                                value={updateForm.data.preferred_date}
+                                onChange={(e) => updateForm.setData('preferred_date', e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Heure préférée</label>
+                            <input
+                                type="time"
+                                value={updateForm.data.preferred_time}
+                                onChange={(e) => updateForm.setData('preferred_time', e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Notes d'administration</label>
+                            <textarea
+                                value={updateForm.data.admin_notes}
+                                onChange={(e) => updateForm.setData('admin_notes', e.target.value)}
+                                placeholder="Notes internes..."
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                rows="3"
+                            />
+                        </div>
+                    </div>
+                    <div className="mt-6 flex justify-end space-x-3">
+                        <SecondaryButton onClick={() => setShowUpdateModal(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <PrimaryButton onClick={handleUpdate} disabled={updateForm.processing}>
+                            {updateForm.processing ? 'Modification...' : 'Modifier'}
                         </PrimaryButton>
                     </div>
                 </div>

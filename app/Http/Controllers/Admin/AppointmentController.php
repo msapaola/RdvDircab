@@ -134,6 +134,27 @@ class AppointmentController extends Controller
         return redirect()->back()->with('success', 'Rendez-vous modifié avec succès.');
     }
 
+    public function complete(Request $request, Appointment $appointment)
+    {
+        if ($appointment->markAsCompleted(auth()->user())) {
+            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé.');
+        }
+
+        return redirect()->back()->with('error', 'Impossible de marquer ce rendez-vous comme terminé.');
+    }
+
+    public function destroy(Appointment $appointment)
+    {
+        $appointmentName = $appointment->name;
+        $appointment->delete();
+
+        activity()
+            ->causedBy(auth()->user())
+            ->log("Rendez-vous supprimé : {$appointmentName}");
+
+        return redirect()->back()->with('success', 'Rendez-vous supprimé avec succès.');
+    }
+
     // Gestion des créneaux bloqués
     public function blockedSlots(Request $request)
     {

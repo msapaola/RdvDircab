@@ -18,6 +18,7 @@ Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admi
         Route::post('/{appointment}/accept', [AppointmentController::class, 'accept'])->name('accept');
         Route::post('/{appointment}/reject', [AppointmentController::class, 'reject'])->name('reject');
         Route::post('/{appointment}/cancel', [AppointmentController::class, 'cancel'])->name('cancel');
+        Route::post('/{appointment}/complete', [AppointmentController::class, 'complete'])->name('complete');
         Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
         Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('destroy');
         
