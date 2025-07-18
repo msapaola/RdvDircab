@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import AdminLayout from '@/Layouts/AdminLayout';
 import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 
-export default function Index({ appointments, stats, filters }) {
+export default function Index({ auth, appointments, stats, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -78,28 +79,16 @@ export default function Index({ appointments, stats, filters }) {
     };
 
     return (
-        <>
+        <AdminLayout user={auth.user}>
             <Head title="Gestion des rendez-vous - Administration" />
             
-            <div className="min-h-screen bg-gray-50">
-                <header className="bg-white shadow-sm border-b mb-8">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Gestion des rendez-vous</h1>
-                                <p className="text-gray-600 mt-2">Liste et gestion de tous les rendez-vous</p>
-                            </div>
-                            <Link
-                                href={route('admin.dashboard')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                                ← Retour au tableau de bord
-                            </Link>
-                        </div>
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {/* En-tête */}
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold text-gray-900">Gestion des rendez-vous</h1>
+                        <p className="text-gray-600 mt-2">Liste et gestion de tous les rendez-vous</p>
                     </div>
-                </header>
-
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Statistiques rapides */}
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
                         <div className="bg-white rounded-lg shadow p-4 text-center">
@@ -362,7 +351,7 @@ export default function Index({ appointments, stats, filters }) {
                             </div>
                         )}
                     </div>
-                </main>
+                </div>
             </div>
 
             {/* Modal de refus */}
@@ -414,6 +403,6 @@ export default function Index({ appointments, stats, filters }) {
                     </div>
                 </div>
             </Modal>
-        </>
+        </AdminLayout>
     );
 } 
