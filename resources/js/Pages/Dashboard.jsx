@@ -131,13 +131,6 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
             
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Test de debug */}
-                    <div className="bg-white rounded-lg shadow p-6 mb-8">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Debug Info</h3>
-                        <p>Utilisateur: {auth.user?.name}</p>
-                        <p>Rôle: {auth.user?.role}</p>
-                        <p>Stats: {JSON.stringify(stats)}</p>
-                    </div>
                     {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6 text-center">
