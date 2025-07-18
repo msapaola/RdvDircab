@@ -50,6 +50,9 @@ Route::get('/dashboard', function () {
     
     // Pour les utilisateurs normaux, afficher un dashboard simple
     return Inertia::render('Dashboard', [
+        'auth' => [
+            'user' => auth()->user(),
+        ],
         'stats' => [],
         'nextAppointments' => [],
         'statsByDay' => [],
