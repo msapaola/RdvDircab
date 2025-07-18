@@ -39,7 +39,7 @@ export default function AdminLayout({ user, header, children }) {
         },
         {
             name: 'Statistiques',
-            href: route('admin.statistics'),
+            href: route('admin.statistics.index'),
             icon: '📈',
             roles: ['admin'] // Admin seulement
         },

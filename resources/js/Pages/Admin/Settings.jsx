@@ -1,344 +1,350 @@
-import React, { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
-import Modal from '@/Components/UI/Modal';
+import TextInput from '@/Components/TextInput';
+import { useState } from 'react';
 
-export default function Settings({ auth, settings }) {
-    const [showBackupModal, setShowBackupModal] = useState(false);
-    const [showRestoreModal, setShowRestoreModal] = useState(false);
+export default function Settings({ settings, businessHours, workingDays }) {
+    const [activeTab, setActiveTab] = useState('general');
 
-    const settingsForm = useForm({
-        site_name: settings.site_name || 'Cabinet du Gouverneur',
-        site_description: settings.site_description || '',
-        contact_email: settings.contact_email || '',
-        contact_phone: settings.contact_phone || '',
+    const { data, setData, patch, processing, errors } = useForm({
+        business_name: settings.business_name || '',
+        business_email: settings.business_email || '',
+        business_phone: settings.business_phone || '',
+        business_address: settings.business_address || '',
         max_appointments_per_day: settings.max_appointments_per_day || 20,
         appointment_duration: settings.appointment_duration || 30,
-        auto_expire_hours: settings.auto_expire_hours || 48,
-        enable_notifications: settings.enable_notifications || true,
-        maintenance_mode: settings.maintenance_mode || false,
+        advance_booking_days: settings.advance_booking_days || 30,
+        auto_expire_days: settings.auto_expire_days || 7,
+        enable_email_notifications: settings.enable_email_notifications || true,
+        enable_sms_notifications: settings.enable_sms_notifications || false,
     });
 
-    const hoursForm = useForm({
-        monday_start: settings.hours?.monday?.start || '08:00',
-        monday_end: settings.hours?.monday?.end || '17:00',
-        tuesday_start: settings.hours?.tuesday?.start || '08:00',
-        tuesday_end: settings.hours?.tuesday?.end || '17:00',
-        wednesday_start: settings.hours?.wednesday?.start || '08:00',
-        wednesday_end: settings.hours?.wednesday?.end || '17:00',
-        thursday_start: settings.hours?.thursday?.start || '08:00',
-        thursday_end: settings.hours?.thursday?.end || '17:00',
-        friday_start: settings.hours?.friday?.start || '08:00',
-        friday_end: settings.hours?.friday?.end || '17:00',
-        saturday_start: settings.hours?.saturday?.start || '08:00',
-        saturday_end: settings.hours?.saturday?.end || '12:00',
-        sunday_start: settings.hours?.sunday?.start || '',
-        sunday_end: settings.hours?.sunday?.end || '',
+    const { data: hoursData, setData: setHoursData, patch: patchHours } = useForm({
+        start_time: businessHours.start_time || '08:00',
+        end_time: businessHours.end_time || '17:00',
+        lunch_start: businessHours.lunch_start || '12:00',
+        lunch_end: businessHours.lunch_end || '14:00',
+        working_days: workingDays || [1, 2, 3, 4, 5], // Lundi à Vendredi
     });
 
-    const handleSaveSettings = () => {
-        settingsForm.patch(route('admin.settings.update'), {
-            onSuccess: () => {
-                // Afficher un message de succès
-            },
-        });
+    const submitGeneral = (e) => {
+        e.preventDefault();
+        patch(route('admin.settings.update'));
     };
 
-    const handleSaveHours = () => {
-        hoursForm.patch(route('admin.settings.hours'), {
-            onSuccess: () => {
-                // Afficher un message de succès
-            },
-        });
+    const submitHours = (e) => {
+        e.preventDefault();
+        patchHours(route('admin.settings.hours'));
     };
 
-    const handleBackup = () => {
-        // Logique de sauvegarde
-        setShowBackupModal(false);
+    const toggleWorkingDay = (day) => {
+        const newDays = hoursData.working_days.includes(day)
+            ? hoursData.working_days.filter(d => d !== day)
+            : [...hoursData.working_days, day];
+        setHoursData('working_days', newDays);
     };
 
-    const handleRestore = () => {
-        // Logique de restauration
-        setShowRestoreModal(false);
+    const dayNames = {
+        1: 'Lundi',
+        2: 'Mardi', 
+        3: 'Mercredi',
+        4: 'Jeudi',
+        5: 'Vendredi',
+        6: 'Samedi',
+        0: 'Dimanche'
     };
-
-    const days = [
-        { key: 'monday', label: 'Lundi' },
-        { key: 'tuesday', label: 'Mardi' },
-        { key: 'wednesday', label: 'Mercredi' },
-        { key: 'thursday', label: 'Jeudi' },
-        { key: 'friday', label: 'Vendredi' },
-        { key: 'saturday', label: 'Samedi' },
-        { key: 'sunday', label: 'Dimanche' },
-    ];
 
     return (
-        <AdminLayout user={auth.user}>
-            <Head title="Paramètres - Administration" />
+        <AdminLayout
+            header={
+                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                    Paramètres
+                </h2>
+            }
+        >
+            <Head title="Paramètres" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* En-tête */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
-                        <p className="text-gray-600 mt-2">Configuration du système de gestion des rendez-vous</p>
+                    {/* Onglets */}
+                    <div className="mb-6 border-b border-gray-200">
+                        <nav className="-mb-px flex space-x-8">
+                            <button
+                                onClick={() => setActiveTab('general')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === 'general'
+                                        ? 'border-indigo-500 text-indigo-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                Général
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('hours')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === 'hours'
+                                        ? 'border-indigo-500 text-indigo-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                Horaires
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('notifications')}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === 'notifications'
+                                        ? 'border-indigo-500 text-indigo-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                Notifications
+                            </button>
+                        </nav>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Paramètres généraux */}
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Paramètres du site */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Paramètres du site</h2>
-                                <div className="space-y-4">
+                    {/* Onglet Général */}
+                    {activeTab === 'general' && (
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6">
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Paramètres généraux</h3>
+                                
+                                <form onSubmit={submitGeneral} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Nom du site
-                                        </label>
-                                        <input
+                                            <InputLabel htmlFor="business_name" value="Nom de l'établissement" />
+                                            <TextInput
+                                                id="business_name"
                                                 type="text"
-                                            value={settingsForm.data.site_name}
-                                            onChange={(e) => settingsForm.setData('site_name', e.target.value)}
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Description
-                                        </label>
-                                        <textarea
-                                            value={settingsForm.data.site_description}
-                                            onChange={(e) => settingsForm.setData('site_description', e.target.value)}
-                                            rows="3"
-                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
+                                                name="business_name"
+                                                value={data.business_name}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('business_name', e.target.value)}
+                                            />
+                                            <InputError message={errors.business_name} className="mt-2" />
                                         </div>
-                                    <div className="grid grid-cols-2 gap-4">
+
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Email de contact
-                                            </label>
-                                            <input
+                                            <InputLabel htmlFor="business_email" value="Email de contact" />
+                                            <TextInput
+                                                id="business_email"
                                                 type="email"
-                                                value={settingsForm.data.contact_email}
-                                                onChange={(e) => settingsForm.setData('contact_email', e.target.value)}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                name="business_email"
+                                                value={data.business_email}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('business_email', e.target.value)}
                                             />
+                                            <InputError message={errors.business_email} className="mt-2" />
                                         </div>
+
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Téléphone de contact
-                                            </label>
-                                            <input
+                                            <InputLabel htmlFor="business_phone" value="Téléphone" />
+                                            <TextInput
+                                                id="business_phone"
                                                 type="text"
-                                                value={settingsForm.data.contact_phone}
-                                                onChange={(e) => settingsForm.setData('contact_phone', e.target.value)}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                name="business_phone"
+                                                value={data.business_phone}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('business_phone', e.target.value)}
                                             />
-                                        </div>
-                                    </div>
-                                </div>
+                                            <InputError message={errors.business_phone} className="mt-2" />
                                         </div>
 
-                            {/* Paramètres des rendez-vous */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Paramètres des rendez-vous</h2>
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-3 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                RDV max/jour
-                                            </label>
-                                            <input
+                                            <InputLabel htmlFor="max_appointments_per_day" value="RDV max par jour" />
+                                            <TextInput
+                                                id="max_appointments_per_day"
                                                 type="number"
-                                                value={settingsForm.data.max_appointments_per_day}
-                                                onChange={(e) => settingsForm.setData('max_appointments_per_day', e.target.value)}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                name="max_appointments_per_day"
+                                                value={data.max_appointments_per_day}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('max_appointments_per_day', e.target.value)}
                                             />
+                                            <InputError message={errors.max_appointments_per_day} className="mt-2" />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Durée RDV (min)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={settingsForm.data.appointment_duration}
-                                                onChange={(e) => settingsForm.setData('appointment_duration', e.target.value)}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Expiration (heures)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={settingsForm.data.auto_expire_hours}
-                                                onChange={(e) => settingsForm.setData('auto_expire_hours', e.target.value)}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-4">
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                id="enable_notifications"
-                                                checked={settingsForm.data.enable_notifications}
-                                                onChange={(e) => settingsForm.setData('enable_notifications', e.target.checked)}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <label htmlFor="enable_notifications" className="ml-2 text-sm text-gray-700">
-                                                Activer les notifications
-                                            </label>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                id="maintenance_mode"
-                                                checked={settingsForm.data.maintenance_mode}
-                                                onChange={(e) => settingsForm.setData('maintenance_mode', e.target.checked)}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <label htmlFor="maintenance_mode" className="ml-2 text-sm text-gray-700">
-                                                Mode maintenance
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* Horaires d'ouverture */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Horaires d'ouverture</h2>
-                                <div className="space-y-4">
-                                    {days.map((day) => (
-                                        <div key={day.key} className="flex items-center space-x-4">
-                                            <div className="w-24 text-sm font-medium text-gray-700">
-                                                {day.label}
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="time"
-                                                    value={hoursForm.data[`${day.key}_start`]}
-                                                    onChange={(e) => hoursForm.setData(`${day.key}_start`, e.target.value)}
-                                                    className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                />
-                                                <span className="text-gray-500">à</span>
-                                                <input
-                                                    type="time"
-                                                    value={hoursForm.data[`${day.key}_end`]}
-                                                    onChange={(e) => hoursForm.setData(`${day.key}_end`, e.target.value)}
-                                                    className="border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                                />
-                                            </div>
+                                        <div>
+                                            <InputLabel htmlFor="appointment_duration" value="Durée RDV (minutes)" />
+                                            <TextInput
+                                                id="appointment_duration"
+                                                type="number"
+                                                name="appointment_duration"
+                                                value={data.appointment_duration}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('appointment_duration', e.target.value)}
+                                            />
+                                            <InputError message={errors.appointment_duration} className="mt-2" />
                                         </div>
-                                    ))}
+
+                                        <div>
+                                            <InputLabel htmlFor="advance_booking_days" value="Réservation à l'avance (jours)" />
+                                            <TextInput
+                                                id="advance_booking_days"
+                                                type="number"
+                                                name="advance_booking_days"
+                                                value={data.advance_booking_days}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setData('advance_booking_days', e.target.value)}
+                                            />
+                                            <InputError message={errors.advance_booking_days} className="mt-2" />
                                         </div>
                                     </div>
 
-                            {/* Boutons d'action */}
-                            <div className="flex space-x-4">
-                                <PrimaryButton onClick={handleSaveSettings}>
-                                    Sauvegarder les paramètres
-                                </PrimaryButton>
-                                <PrimaryButton onClick={handleSaveHours}>
-                                    Sauvegarder les horaires
+                                    <div>
+                                        <InputLabel htmlFor="business_address" value="Adresse" />
+                                        <textarea
+                                            id="business_address"
+                                            name="business_address"
+                                            value={data.business_address}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                            rows="3"
+                                            onChange={(e) => setData('business_address', e.target.value)}
+                                        />
+                                        <InputError message={errors.business_address} className="mt-2" />
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <PrimaryButton disabled={processing}>
+                                            Sauvegarder
                                         </PrimaryButton>
+                                    </div>
+                                </form>
                             </div>
                         </div>
+                    )}
 
-                        {/* Actions système */}
-                        <div className="space-y-6">
-                            {/* Actions rapides */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions système</h2>
-                                <div className="space-y-3">
-                                    <button
-                                        onClick={() => setShowBackupModal(true)}
-                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                                    >
-                                        💾 Créer une sauvegarde
-                                    </button>
-                                    <button
-                                        onClick={() => setShowRestoreModal(true)}
-                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                                    >
-                                        🔄 Restaurer une sauvegarde
-                                    </button>
-                                    <button
-                                        onClick={() => window.location.reload()}
-                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                                    >
-                                        🔄 Vider le cache
-                                    </button>
-                                </div>
-                            </div>
+                    {/* Onglet Horaires */}
+                    {activeTab === 'hours' && (
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6">
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Horaires de travail</h3>
+                                
+                                <form onSubmit={submitHours} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <InputLabel htmlFor="start_time" value="Heure de début" />
+                                            <TextInput
+                                                id="start_time"
+                                                type="time"
+                                                name="start_time"
+                                                value={hoursData.start_time}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setHoursData('start_time', e.target.value)}
+                                            />
+                                        </div>
 
-                            {/* Informations système */}
-                            <div className="bg-white rounded-lg shadow p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations système</h2>
-                                <div className="space-y-3 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Version PHP:</span>
-                                        <span className="font-medium">8.2.28</span>
+                                        <div>
+                                            <InputLabel htmlFor="end_time" value="Heure de fin" />
+                                            <TextInput
+                                                id="end_time"
+                                                type="time"
+                                                name="end_time"
+                                                value={hoursData.end_time}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setHoursData('end_time', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <InputLabel htmlFor="lunch_start" value="Début pause déjeuner" />
+                                            <TextInput
+                                                id="lunch_start"
+                                                type="time"
+                                                name="lunch_start"
+                                                value={hoursData.lunch_start}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setHoursData('lunch_start', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <InputLabel htmlFor="lunch_end" value="Fin pause déjeuner" />
+                                            <TextInput
+                                                id="lunch_end"
+                                                type="time"
+                                                name="lunch_end"
+                                                value={hoursData.lunch_end}
+                                                className="mt-1 block w-full"
+                                                onChange={(e) => setHoursData('lunch_end', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Version Laravel:</span>
-                                        <span className="font-medium">12.12.0</span>
+
+                                    <div>
+                                        <InputLabel value="Jours de travail" />
+                                        <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            {Object.entries(dayNames).map(([day, name]) => (
+                                                <label key={day} className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={hoursData.working_days.includes(parseInt(day))}
+                                                        onChange={() => toggleWorkingDay(parseInt(day))}
+                                                        className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                                    />
+                                                    <span className="ml-2 text-sm text-gray-700">{name}</span>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Base de données:</span>
-                                        <span className="font-medium">MySQL 8.0</span>
+
+                                    <div className="flex justify-end">
+                                        <PrimaryButton disabled={processing}>
+                                            Sauvegarder les horaires
+                                        </PrimaryButton>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Espace disque:</span>
-                                        <span className="font-medium">2.5 GB / 10 GB</span>
-                                    </div>
-                                </div>
+                                </form>
                             </div>
                         </div>
-                    </div>
+                    )}
+
+                    {/* Onglet Notifications */}
+                    {activeTab === 'notifications' && (
+                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                            <div className="p-6">
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">Paramètres de notifications</h3>
+                                
+                                <form onSubmit={submitGeneral} className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center">
+                                            <input
+                                                id="enable_email_notifications"
+                                                type="checkbox"
+                                                checked={data.enable_email_notifications}
+                                                onChange={(e) => setData('enable_email_notifications', e.target.checked)}
+                                                className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            />
+                                            <label htmlFor="enable_email_notifications" className="ml-2 text-sm text-gray-700">
+                                                Activer les notifications par email
+                                            </label>
+                                        </div>
+
+                                        <div className="flex items-center">
+                                            <input
+                                                id="enable_sms_notifications"
+                                                type="checkbox"
+                                                checked={data.enable_sms_notifications}
+                                                onChange={(e) => setData('enable_sms_notifications', e.target.checked)}
+                                                className="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            />
+                                            <label htmlFor="enable_sms_notifications" className="ml-2 text-sm text-gray-700">
+                                                Activer les notifications par SMS
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <PrimaryButton disabled={processing}>
+                                            Sauvegarder
+                                        </PrimaryButton>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* Modal de sauvegarde */}
-            <Modal show={showBackupModal} onClose={() => setShowBackupModal(false)}>
-                <div className="p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Créer une sauvegarde</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Cette action va créer une sauvegarde complète de la base de données et des fichiers.
-                    </p>
-                    <div className="mt-6 flex justify-end space-x-3">
-                        <SecondaryButton onClick={() => setShowBackupModal(false)}>
-                            Annuler
-                        </SecondaryButton>
-                        <PrimaryButton onClick={handleBackup}>
-                            Créer la sauvegarde
-                        </PrimaryButton>
-                    </div>
-                </div>
-            </Modal>
-
-            {/* Modal de restauration */}
-            <Modal show={showRestoreModal} onClose={() => setShowRestoreModal(false)}>
-                <div className="p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Restaurer une sauvegarde</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                        Attention : Cette action va remplacer toutes les données actuelles par celles de la sauvegarde.
-                    </p>
-                    <div className="mt-6 flex justify-end space-x-3">
-                        <SecondaryButton onClick={() => setShowRestoreModal(false)}>
-                            Annuler
-                        </SecondaryButton>
-                        <PrimaryButton onClick={handleRestore} className="bg-red-600 hover:bg-red-700">
-                            Restaurer
-                        </PrimaryButton>
-                    </div>
-                </div>
-            </Modal>
         </AdminLayout>
     );
 } 

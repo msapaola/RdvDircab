@@ -73,10 +73,7 @@ class DashboardController extends Controller
         // Pagination
         $appointments = $query->paginate(15)->withQueryString();
 
-        return Inertia::render('Admin/Dashboard', [
-            'auth' => [
-                'user' => $request->user(),
-            ],
+        return Inertia::render('Dashboard', [
             'stats' => $stats,
             'nextAppointments' => $nextAppointments,
             'statsByDay' => $statsByDay,
