@@ -23,9 +23,4 @@
                         },
                     },
                 },
-                resolve: {
-                    alias: {
-                        '@': '/resources/js',
-                    },
-                },
             });

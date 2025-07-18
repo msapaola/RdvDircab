@@ -22,14 +22,15 @@ use Inertia\Inertia;
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/tracking/{token}', [PublicController::class, 'tracking'])->name('appointments.tracking');
 
-// Route pour les rendez-vous - API style (pas de CSRF)
+// Route pour les rendez-vous avec middleware personnalisé (sans CSRF)
 Route::post('/appointments', [PublicController::class, 'store'])
     ->middleware(['throttle.appointments'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('appointments.store');
 
 Route::post('/appointments/{token}/cancel', [PublicController::class, 'cancel'])->name('appointments.cancel');
 
-// Route de bienvenue
+// Route de bienvenue (redirige vers l'accueil public)
 Route::get('/welcome', function () {
     return redirect()->route('home');
 })->name('welcome');
@@ -38,16 +39,6 @@ Route::get('/welcome', function () {
 Route::get('/test', [TestController::class, 'index'])->name('test');
 Route::get('/test-charts', [TestController::class, 'charts'])->name('test.charts');
 Route::get('/test-colors', [TestController::class, 'colors'])->name('test.colors');
-
-// Route de test simple
-Route::get('/test', function () {
-    return Inertia::render('Test');
-})->name('test');
-
-// Route de login simplifiée pour test
-Route::get('/login-simple', function () {
-    return Inertia::render('Auth/LoginSimple');
-})->name('login.simple');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
