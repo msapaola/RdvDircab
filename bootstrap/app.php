@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'throttle.appointments' => \App\Http\Middleware\ThrottleAppointments::class,
             'disable.csrf.appointments' => \App\Http\Middleware\DisableCsrfForAppointments::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
         // Apply custom middleware to disable CSRF for appointments
