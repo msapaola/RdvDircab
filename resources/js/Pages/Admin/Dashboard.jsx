@@ -47,7 +47,21 @@ export default function Dashboard({ stats, nextAppointments, statsByDay }) {
                     {/* Statistiques graphiques */}
                     <div className="bg-white rounded-lg shadow p-6 mb-8">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Statistiques sur 30 jours</h2>
-                        <Statistics statsByDay={statsByDay} />
+                        <Statistics 
+                            data={{
+                                title: 'Évolution des rendez-vous sur 30 jours',
+                                series: [
+                                    {
+                                        name: 'Rendez-vous',
+                                        data: (statsByDay || []).map(item => ({
+                                            x: new Date(item.day).getTime(),
+                                            y: item.count
+                                        }))
+                                    }
+                                ]
+                            }}
+                            type="line"
+                        />
                     </div>
 
                     {/* Prochains rendez-vous */}

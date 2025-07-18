@@ -2,6 +2,15 @@ import React from 'react';
 import ReactApexChart from 'react-apexcharts';
 
 export default function Statistics({ data, type = 'line', height = 350 }) {
+    // Safety check for data
+    if (!data) {
+        return (
+            <div className="bg-white rounded-lg shadow p-6">
+                <div className="text-gray-500 text-center">Aucune donnée disponible</div>
+            </div>
+        );
+    }
+
     const getChartOptions = () => {
         const baseOptions = {
             chart: {
