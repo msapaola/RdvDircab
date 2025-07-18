@@ -8,7 +8,7 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
     return (
         <AdminLayout user={auth.user}>
             <Head title="Statistiques - Administration" />
-            
+
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* En-tête */}
@@ -33,9 +33,9 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                     {/* KPIs principaux */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
                                         <span className="text-white text-sm font-bold">📅</span>
                                     </div>
                                 </div>
@@ -45,24 +45,24 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                                        <span className="text-white text-sm font-bold">✅</span>
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                            <span className="text-white text-sm font-bold">✅</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="ml-4">
+                                    <div className="ml-4">
                                     <div className="text-2xl font-bold text-gray-900">{stats.accepted_rate}%</div>
                                     <div className="text-sm text-gray-600">Taux d'acceptation</div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
                                     <div className="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
                                         <span className="text-white text-sm font-bold">⏱️</span>
                                     </div>
@@ -73,10 +73,10 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="bg-white rounded-lg shadow p-6">
-                            <div className="flex items-center">
-                                <div className="flex-shrink-0">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
                                     <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
                                         <span className="text-white text-sm font-bold">👥</span>
                                     </div>
@@ -106,7 +106,7 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                                 }}
                                 type="line"
                             />
-                        </div>
+                                                </div>
 
                         {/* Répartition par statut */}
                         <div className="bg-white rounded-lg shadow p-6">
@@ -123,8 +123,8 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                                 }}
                                 type="pie"
                             />
-                        </div>
-                    </div>
+                                            </div>
+                                        </div>
 
                     {/* Statistiques détaillées */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -150,15 +150,15 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                         {/* Performance par utilisateur */}
                         <div className="bg-white rounded-lg shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance par utilisateur</h3>
-                            <div className="space-y-3">
+                                <div className="space-y-3">
                                 {stats.user_performance?.map((user, index) => (
                                     <div key={index} className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600 truncate">{user.name}</span>
                                         <span className="text-sm font-semibold text-gray-900">{user.count}</span>
-                                    </div>
+                                            </div>
                                 ))}
-                            </div>
-                        </div>
+                                            </div>
+                                        </div>
 
                         {/* Tendances */}
                         <div className="bg-white rounded-lg shadow p-6">
@@ -185,38 +185,38 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-900">Meilleures performances</h2>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Utilisateur
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Utilisateur
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Rendez-vous traités
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Taux d'acceptation
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Taux d'acceptation
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Temps moyen
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Score
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
                                     {stats.top_performers?.map((performer, index) => (
                                         <tr key={index} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <div className="flex-shrink-0 h-10 w-10">
-                                                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                                            <span className="text-sm font-medium text-gray-700">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0 h-10 w-10">
+                                                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                                                <span className="text-sm font-medium text-gray-700">
                                                                 {performer.name.charAt(0).toUpperCase()}
-                                                            </span>
-                                                        </div>
+                                                                </span>
+                                                            </div>
                                                     </div>
                                                     <div className="ml-4">
                                                         <div className="text-sm font-medium text-gray-900">
@@ -236,20 +236,20 @@ export default function AdminStatistics({ auth, stats, chartsData }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {performer.avg_response_time}h
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                                     performer.score >= 90 ? 'bg-green-100 text-green-800' :
                                                     performer.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
                                                     'bg-red-100 text-red-800'
                                                 }`}>
                                                     {performer.score}/100
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                         </div>
                     </div>
                 </div>

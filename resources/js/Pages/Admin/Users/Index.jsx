@@ -87,13 +87,13 @@ export default function Users({ auth, users }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* En-tête */}
                     <div className="mb-8 flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Gestion des utilisateurs</h1>
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900">Gestion des utilisateurs</h1>
                             <p className="text-gray-600 mt-2">Gestion des comptes administrateurs et assistants</p>
                         </div>
                         <PrimaryButton onClick={() => setShowCreateModal(true)}>
                             Ajouter un utilisateur
-                        </PrimaryButton>
+                            </PrimaryButton>
                     </div>
 
                     {/* Liste des utilisateurs */}
@@ -109,41 +109,41 @@ export default function Users({ auth, users }) {
                                 <p className="text-gray-500">Aucun utilisateur trouvé.</p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Utilisateur
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Rôle
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Statut
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Utilisateur
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Rôle
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Statut
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Dernière activité
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
                                         {users.map((user) => (
-                                            <tr key={user.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {user.name}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {user.email}
-                                                        </div>
+                                        <tr key={user.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {user.name}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-500">
+                                                        {user.email}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                                         user.role === 'admin' 
                                                             ? 'bg-purple-100 text-purple-800' 
@@ -151,8 +151,8 @@ export default function Users({ auth, users }) {
                                                     }`}>
                                                         {user.role === 'admin' ? 'Administrateur' : 'Assistant'}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                                         user.is_active 
                                                             ? 'bg-green-100 text-green-800' 
@@ -160,35 +160,35 @@ export default function Users({ auth, users }) {
                                                     }`}>
                                                         {user.is_active ? 'Actif' : 'Inactif'}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {user.last_login_at 
                                                         ? new Date(user.last_login_at).toLocaleDateString('fr-FR')
                                                         : 'Jamais connecté'
                                                     }
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <div className="flex space-x-2">
-                                                        <Link
-                                                            href={route('admin.users.show', user.id)}
-                                                            className="text-blue-600 hover:text-blue-900"
-                                                        >
-                                                            Voir
-                                                        </Link>
-                                                        <button
-                                                            onClick={() => openEditModal(user)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
+                                                    <Link
+                                                        href={route('admin.users.show', user.id)}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        Voir
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => openEditModal(user)}
                                                             className="text-indigo-600 hover:text-indigo-900"
-                                                        >
-                                                            Modifier
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleToggleStatus(user)}
-                                                            className={`${
+                                                    >
+                                                        Modifier
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleStatus(user)}
+                                                        className={`${
                                                                 user.is_active 
                                                                     ? 'text-red-600 hover:text-red-900' 
-                                                                    : 'text-green-600 hover:text-green-900'
-                                                            }`}
-                                                        >
+                                                                : 'text-green-600 hover:text-green-900'
+                                                        }`}
+                                                    >
                                                             {user.is_active ? 'Désactiver' : 'Activer'}
                                                         </button>
                                                         {user.id !== auth.user.id && (
@@ -197,22 +197,22 @@ export default function Users({ auth, users }) {
                                                                 className="text-orange-600 hover:text-orange-900"
                                                             >
                                                                 {user.role === 'admin' ? 'Rétrograder' : 'Promouvoir'}
-                                                            </button>
+                                                    </button>
                                                         )}
                                                         {user.id !== auth.user.id && (
-                                                            <button
+                                                        <button
                                                                 onClick={() => handleDelete(user)}
-                                                                className="text-red-600 hover:text-red-900"
-                                                            >
-                                                                Supprimer
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            Supprimer
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                             </div>
                         )}
                     </div>

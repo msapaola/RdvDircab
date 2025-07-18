@@ -77,7 +77,7 @@ export default function Settings({ auth, settings }) {
     return (
         <AdminLayout user={auth.user}>
             <Head title="Paramètres - Administration" />
-            
+
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* En-tête */}
@@ -93,12 +93,12 @@ export default function Settings({ auth, settings }) {
                             <div className="bg-white rounded-lg shadow p-6">
                                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Paramètres du site</h2>
                                 <div className="space-y-4">
-                                    <div>
+                                        <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Nom du site
                                         </label>
                                         <input
-                                            type="text"
+                                                type="text"
                                             value={settingsForm.data.site_name}
                                             onChange={(e) => settingsForm.setData('site_name', e.target.value)}
                                             className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -114,7 +114,7 @@ export default function Settings({ auth, settings }) {
                                             rows="3"
                                             className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         />
-                                    </div>
+                                        </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -140,7 +140,7 @@ export default function Settings({ auth, settings }) {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                                        </div>
 
                             {/* Paramètres des rendez-vous */}
                             <div className="bg-white rounded-lg shadow p-6">
@@ -236,8 +236,8 @@ export default function Settings({ auth, settings }) {
                                             </div>
                                         </div>
                                     ))}
-                                </div>
-                            </div>
+                                        </div>
+                                    </div>
 
                             {/* Boutons d'action */}
                             <div className="flex space-x-4">
@@ -246,7 +246,7 @@ export default function Settings({ auth, settings }) {
                                 </PrimaryButton>
                                 <PrimaryButton onClick={handleSaveHours}>
                                     Sauvegarder les horaires
-                                </PrimaryButton>
+                                        </PrimaryButton>
                             </div>
                         </div>
 

@@ -68,13 +68,13 @@ export default function BlockedSlots({ auth, blockedSlots }) {
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* En-tête */}
                     <div className="mb-8 flex justify-between items-center">
-                        <div>
+                            <div>
                             <h1 className="text-3xl font-bold text-gray-900">Créneaux bloqués</h1>
                             <p className="text-gray-600 mt-2">Gestion des créneaux horaires non disponibles</p>
                         </div>
                         <PrimaryButton onClick={() => setShowCreateModal(true)}>
                             Ajouter un créneau bloqué
-                        </PrimaryButton>
+                            </PrimaryButton>
                     </div>
 
                     {/* Liste des créneaux bloqués */}
@@ -90,51 +90,51 @@ export default function BlockedSlots({ auth, blockedSlots }) {
                                 <p className="text-gray-500">Aucun créneau bloqué pour le moment.</p>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Date
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Heure
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Raison
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Créé par
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Raison
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Créé par
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
                                         {blockedSlots.map((slot) => (
-                                            <tr key={slot.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                        <tr key={slot.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">
                                                         {new Date(slot.date).toLocaleDateString('fr-FR')}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">
                                                         {slot.start_time} - {slot.end_time}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                        {slot.reason}
-                                                    </div>
-                                                </td>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm text-gray-900 max-w-xs truncate">
+                                                    {slot.reason}
+                                                </div>
+                                            </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm text-gray-500">
                                                         {slot.blocked_by_user?.name || 'Système'}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => openEditModal(slot)}
@@ -142,18 +142,18 @@ export default function BlockedSlots({ auth, blockedSlots }) {
                                                         >
                                                             Modifier
                                                         </button>
-                                                        <button
+                                                <button
                                                             onClick={() => handleDelete(slot)}
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            Supprimer
-                                                        </button>
+                                                    className="text-red-600 hover:text-red-900"
+                                                >
+                                                    Supprimer
+                                                </button>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                             </div>
                         )}
                     </div>

@@ -12,22 +12,9 @@ export default function StatusBadge({ status, color = 'gray' }) {
         pink: 'bg-pink-100 text-pink-800',
     };
 
-    // Mapping des statuts vers les couleurs et labels
-    const statusConfig = {
-        'pending': { color: 'orange', label: 'En attente' },
-        'accepted': { color: 'green', label: 'Accepté' },
-        'rejected': { color: 'red', label: 'Refusé' },
-        'canceled': { color: 'gray', label: 'Annulé' },
-        'canceled_by_requester': { color: 'gray', label: 'Annulé par le demandeur' },
-        'expired': { color: 'gray', label: 'Expiré' },
-        'completed': { color: 'blue', label: 'Terminé' },
-    };
-
-    const config = statusConfig[status] || { color: 'gray', label: status };
-
     return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[config.color]}`}>
-            {config.label}
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClasses[color]}`}>
+            {status}
         </span>
     );
 } 
