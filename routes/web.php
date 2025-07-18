@@ -44,7 +44,7 @@ Route::get('/test-colors', [TestController::class, 'colors'])->name('test.colors
 Route::get('/dashboard', function () {
     $user = auth()->user();
     
-    if ($user->hasRole(['admin', 'assistant'])) {
+    if ($user->hasAnyRole(['admin', 'assistant'])) {
         return app(\App\Http\Controllers\Admin\DashboardController::class)->index(request());
     }
     
