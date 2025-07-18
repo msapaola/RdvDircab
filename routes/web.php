@@ -40,8 +40,22 @@ Route::get('/test', [TestController::class, 'index'])->name('test');
 Route::get('/test-charts', [TestController::class, 'charts'])->name('test.charts');
 Route::get('/test-colors', [TestController::class, 'colors'])->name('test.colors');
 
+// Dashboard principal - redirige selon le rôle
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $user = auth()->user();
+    
+    if ($user->hasRole(['admin', 'assistant'])) {
+        return app(\App\Http\Controllers\Admin\DashboardController::class)->index(request());
+    }
+    
+    // Pour les utilisateurs normaux, afficher un dashboard simple
+    return Inertia::render('Dashboard', [
+        'stats' => [],
+        'nextAppointments' => [],
+        'statsByDay' => [],
+        'appointments' => null,
+        'filters' => [],
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
