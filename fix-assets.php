@@ -1,120 +1,119 @@
 <?php
 
-// Script pour diagnostiquer et corriger les problèmes d'assets
-echo "=== Diagnostic des Assets ===\n\n";
+echo "=== RÉPARATION DES ASSETS ===\n\n";
 
-// 1. Vérifier si le dossier build existe
-$buildPath = __DIR__ . '/public/build';
-echo "1. Vérification du dossier build...\n";
-if (is_dir($buildPath)) {
-    echo "   ✅ Dossier build trouvé: $buildPath\n";
+// 1. Nettoyer le cache
+echo "1. Nettoyage du cache...\n";
+system('php artisan config:clear');
+system('php artisan cache:clear');
+system('php artisan view:clear');
+system('php artisan route:clear');
+
+echo "✓ Cache nettoyé\n\n";
+
+// 2. Supprimer les anciens builds
+echo "2. Suppression des anciens builds...\n";
+if (is_dir('public/build')) {
+    system('rm -rf public/build');
+    echo "✓ Ancien build supprimé\n";
 } else {
-    echo "   ❌ Dossier build manquant: $buildPath\n";
+    echo "✓ Pas d'ancien build à supprimer\n";
+}
+
+echo "\n";
+
+// 3. Vérifier les dépendances
+echo "3. Vérification des dépendances...\n";
+if (file_exists('package.json')) {
+    echo "✓ package.json trouvé\n";
+    
+    // Vérifier si node_modules existe
+    if (!is_dir('node_modules')) {
+        echo "⚠ node_modules manquant, installation...\n";
+        system('npm install');
+    } else {
+        echo "✓ node_modules existe\n";
+    }
+} else {
+    echo "✗ package.json manquant\n";
     exit(1);
 }
 
-// 2. Vérifier le manifest
-$manifestPath = $buildPath . '/manifest.json';
-echo "\n2. Vérification du manifest...\n";
-if (file_exists($manifestPath)) {
-    echo "   ✅ Manifest trouvé: $manifestPath\n";
-    $manifest = json_decode(file_get_contents($manifestPath), true);
+echo "\n";
+
+// 4. Reconstruire les assets
+echo "4. Reconstruction des assets...\n";
+echo "Exécution de npm run build...\n";
+$output = shell_exec('npm run build 2>&1');
+echo "Sortie:\n$output\n";
+
+// 5. Vérifier le résultat
+echo "5. Vérification du résultat...\n";
+if (file_exists('public/build/manifest.json')) {
+    echo "✓ manifest.json créé\n";
+    
+    $manifest = json_decode(file_get_contents('public/build/manifest.json'), true);
     if ($manifest) {
-        echo "   ✅ Manifest valide (JSON)\n";
+        echo "✓ manifest.json valide\n";
+        echo "  Nombre d'entrées: " . count($manifest) . "\n";
     } else {
-        echo "   ❌ Manifest invalide (JSON corrompu)\n";
+        echo "✗ manifest.json invalide\n";
     }
 } else {
-    echo "   ❌ Manifest manquant: $manifestPath\n";
+    echo "✗ manifest.json non créé\n";
 }
 
-// 3. Vérifier le dossier assets
-$assetsPath = $buildPath . '/assets';
-echo "\n3. Vérification du dossier assets...\n";
-if (is_dir($assetsPath)) {
-    echo "   ✅ Dossier assets trouvé: $assetsPath\n";
-    $files = scandir($assetsPath);
-    $assetFiles = array_filter($files, function($file) {
-        return $file !== '.' && $file !== '..';
+if (is_dir('public/build/assets')) {
+    $assets = scandir('public/build/assets');
+    $jsFiles = array_filter($assets, function($file) {
+        return pathinfo($file, PATHINFO_EXTENSION) === 'js';
     });
-    echo "   📁 Nombre de fichiers assets: " . count($assetFiles) . "\n";
+    $cssFiles = array_filter($assets, function($file) {
+        return pathinfo($file, PATHINFO_EXTENSION) === 'css';
+    });
     
-    // Lister quelques fichiers
-    $sampleFiles = array_slice($assetFiles, 0, 5);
-    foreach ($sampleFiles as $file) {
-        echo "      - $file\n";
-    }
-    if (count($assetFiles) > 5) {
-        echo "      ... et " . (count($assetFiles) - 5) . " autres fichiers\n";
-    }
+    echo "✓ Assets créés\n";
+    echo "  Fichiers JS: " . count($jsFiles) . "\n";
+    echo "  Fichiers CSS: " . count($cssFiles) . "\n";
 } else {
-    echo "   ❌ Dossier assets manquant: $assetsPath\n";
+    echo "✗ Dossier assets non créé\n";
 }
 
-// 4. Vérifier les permissions
-echo "\n4. Vérification des permissions...\n";
-if (is_readable($buildPath)) {
-    echo "   ✅ Dossier build lisible\n";
-} else {
-    echo "   ❌ Dossier build non lisible\n";
-}
+echo "\n";
 
-if (is_readable($assetsPath)) {
-    echo "   ✅ Dossier assets lisible\n";
-} else {
-    echo "   ❌ Dossier assets non lisible\n";
-}
+// 6. Corriger les permissions
+echo "6. Correction des permissions...\n";
+system('chmod -R 755 public/build');
+system('chmod -R 755 storage');
+echo "✓ Permissions corrigées\n";
 
-// 5. Tester l'accès web
-echo "\n5. Test d'accès web...\n";
-$testFile = $assetsPath . '/app-8cgd_IZT.css';
-if (file_exists($testFile)) {
-    echo "   ✅ Fichier de test trouvé: app-8cgd_IZT.css\n";
+echo "\n";
+
+// 7. Test final
+echo "7. Test final...\n";
+if (file_exists('public/build/manifest.json')) {
+    $manifest = json_decode(file_get_contents('public/build/manifest.json'), true);
     
-    // Vérifier la taille
-    $size = filesize($testFile);
-    echo "   📏 Taille: " . number_format($size) . " bytes\n";
-} else {
-    echo "   ❌ Fichier de test manquant: app-8cgd_IZT.css\n";
-}
-
-// 6. Vérifier la structure complète
-echo "\n6. Structure du dossier build:\n";
-function listDirectory($path, $indent = '') {
-    $items = scandir($path);
-    foreach ($items as $item) {
-        if ($item === '.' || $item === '..') continue;
-        
-        $fullPath = $path . '/' . $item;
-        if (is_dir($fullPath)) {
-            echo "$indent📁 $item/\n";
-            listDirectory($fullPath, $indent . '  ');
+    // Chercher les entrées principales
+    $mainEntries = ['resources/js/app.jsx'];
+    foreach ($mainEntries as $entry) {
+        if (isset($manifest[$entry])) {
+            $file = 'public/build/' . $manifest[$entry]['file'];
+            if (file_exists($file)) {
+                echo "✓ $entry -> {$manifest[$entry]['file']}\n";
+            } else {
+                echo "✗ $entry -> fichier manquant\n";
+            }
         } else {
-            $size = filesize($fullPath);
-            echo "$indent📄 $item (" . number_format($size) . " bytes)\n";
+            echo "⚠ $entry non trouvé dans le manifest\n";
         }
     }
 }
 
-listDirectory($buildPath);
-
-echo "\n=== Fin du diagnostic ===\n";
-
-// 7. Suggestions de correction
-echo "\n=== Suggestions de correction ===\n";
-
-if (!file_exists($manifestPath)) {
-    echo "1. Copier le manifest depuis .vite/manifest.json:\n";
-    echo "   cp public/build/.vite/manifest.json public/build/manifest.json\n\n";
-}
-
-if (!is_dir($assetsPath)) {
-    echo "2. Recompiler les assets:\n";
-    echo "   npm run build\n\n";
-}
-
-echo "3. Vérifier que tous les fichiers sont transférés sur le serveur\n";
-echo "4. Vérifier les permissions (755 pour les dossiers, 644 pour les fichiers)\n";
-echo "5. Vérifier que le serveur web peut accéder au dossier public/build\n";
+echo "\n=== RÉPARATION TERMINÉE ===\n";
+echo "Si les problèmes persistent:\n";
+echo "1. Vérifiez les logs du serveur web\n";
+echo "2. Vérifiez la configuration du serveur web\n";
+echo "3. Testez avec: php diagnostic-assets.php\n";
 
 ?> 
