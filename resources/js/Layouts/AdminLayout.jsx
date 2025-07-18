@@ -8,9 +8,12 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 export default function AdminLayout({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
     const { auth } = usePage().props;
+    
+    // Utiliser le user passé en prop ou celui des props de la page
+    const currentUser = user || auth.user;
 
-    const isAdmin = auth.user?.role === 'admin';
-    const isAssistant = auth.user?.role === 'assistant';
+    const isAdmin = currentUser?.role === 'admin';
+    const isAssistant = currentUser?.role === 'assistant';
 
     const navigationItems = [
         {
@@ -52,7 +55,7 @@ export default function AdminLayout({ user, header, children }) {
     ];
 
     const filteredNavigation = navigationItems.filter(item => 
-        item.roles.includes(auth.user?.role)
+        item.roles.includes(currentUser?.role)
     );
 
     return (
@@ -94,9 +97,9 @@ export default function AdminLayout({ user, header, children }) {
                                                 type="button"
                                                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
                                             >
-                                                {auth.user.name}
+                                                {currentUser.name}
                                                 <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                                    {auth.user.role === 'admin' ? 'Admin' : 'Assistant'}
+                                                    {currentUser.role === 'admin' ? 'Admin' : 'Assistant'}
                                                 </span>
 
                                                 <svg
@@ -174,12 +177,12 @@ export default function AdminLayout({ user, header, children }) {
                     <div className="pt-4 pb-1 border-t border-gray-200">
                         <div className="px-4">
                             <div className="font-medium text-base text-gray-800">
-                                {auth.user.name}
+                                {currentUser.name}
                                 <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                    {auth.user.role === 'admin' ? 'Admin' : 'Assistant'}
+                                    {currentUser.role === 'admin' ? 'Admin' : 'Assistant'}
                                 </span>
                             </div>
-                            <div className="font-medium text-sm text-gray-500">{auth.user.email}</div>
+                            <div className="font-medium text-sm text-gray-500">{currentUser.email}</div>
                         </div>
 
                         <div className="mt-3 space-y-1">

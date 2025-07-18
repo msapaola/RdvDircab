@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Statistics from '@/Components/Admin/Statistics';
 import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -118,8 +119,12 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
         }
     };
 
-    return (
-        <AdminLayout user={auth.user}>
+    // Déterminer si l'utilisateur est admin ou assistant
+    const isAdminOrAssistant = auth.user?.role === 'admin' || auth.user?.role === 'assistant';
+
+    // Contenu du dashboard
+    const dashboardContent = (
+        <>
             <Head title="Tableau de bord - Administration" />
             
             <div className="py-12">
@@ -542,6 +547,21 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
                     </div>
                 </div>
             </Modal>
-        </AdminLayout>
+        </>
     );
+
+    // Utiliser le layout approprié selon le rôle
+    if (isAdminOrAssistant) {
+        return (
+            <AdminLayout user={auth.user}>
+                {dashboardContent}
+            </AdminLayout>
+        );
+    } else {
+        return (
+            <AuthenticatedLayout user={auth.user}>
+                {dashboardContent}
+            </AuthenticatedLayout>
+        );
+    }
 }
