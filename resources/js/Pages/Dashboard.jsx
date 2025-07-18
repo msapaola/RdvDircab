@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
 import Statistics from '@/Components/Admin/Statistics';
 import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 
-export default function Dashboard({ auth, stats, nextAppointments, statsByDay, appointments, filters }) {
+export default function Dashboard({ stats, nextAppointments, statsByDay, appointments, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -119,18 +118,17 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
     };
 
     return (
-        <AdminLayout
-            user={auth.user}
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Tableau de bord
-                </h2>
-            }
-        >
+        <>
             <Head title="Tableau de bord - Administration" />
-            
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="min-h-screen bg-gray-50">
+                <header className="bg-white shadow-sm border-b mb-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
+                        <p className="text-gray-600 mt-2">Vue d'ensemble et gestion des rendez-vous</p>
+                    </div>
+                </header>
+
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -488,7 +486,7 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
                             <div className="text-gray-500 text-sm">Aucun rendez-vous à venir.</div>
                         )}
                     </div>
-                </div>
+                </main>
             </div>
 
             {/* Modal de refus */}
@@ -585,6 +583,6 @@ export default function Dashboard({ auth, stats, nextAppointments, statsByDay, a
                     </div>
                 </div>
             </Modal>
-        </AdminLayout>
+        </>
     );
 }

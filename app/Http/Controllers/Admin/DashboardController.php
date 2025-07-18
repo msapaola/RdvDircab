@@ -74,9 +74,6 @@ class DashboardController extends Controller
         $appointments = $query->paginate(15)->withQueryString();
 
         return Inertia::render('Dashboard', [
-            'auth' => [
-                'user' => auth()->user(),
-            ],
             'stats' => $stats,
             'nextAppointments' => $nextAppointments,
             'statsByDay' => $statsByDay,

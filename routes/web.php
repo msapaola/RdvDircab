@@ -45,15 +45,16 @@ Route::get('/dashboard', function () {
     $user = auth()->user();
     
     if ($user->hasAnyRole(['admin', 'assistant'])) {
-        // Rediriger vers le dashboard admin
-        return redirect()->route('admin.dashboard');
+        return app(\App\Http\Controllers\Admin\DashboardController::class)->index(request());
     }
     
     // Pour les utilisateurs normaux, afficher un dashboard simple
-    return Inertia::render('UserDashboard', [
-        'auth' => [
-            'user' => auth()->user(),
-        ],
+    return Inertia::render('Dashboard', [
+        'stats' => [],
+        'nextAppointments' => [],
+        'statsByDay' => [],
+        'appointments' => null,
+        'filters' => [],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
