@@ -802,17 +802,17 @@ export default function Index({ appointments, stats, filters }) {
             </div>
 
             {/* Modal de détails */}
-            <Modal show={showDetailsModal} onClose={() => setShowDetailsModal(false)} maxWidth="2xl">
+            <Modal show={showDetailsModal} onClose={() => setShowDetailsModal(false)} maxWidth="6xl">
                 {selectedAppointment && (
                     <div className="p-6">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-6">
                             Détails du rendez-vous - {selectedAppointment.name}
                         </h3>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Informations du demandeur</h4>
-                                <div className="space-y-2 text-sm">
+                                <h4 className="font-medium text-gray-900 mb-3">Informations du demandeur</h4>
+                                <div className="space-y-3 text-sm">
                                     <p><span className="font-medium">Nom :</span> {selectedAppointment.name}</p>
                                     <p><span className="font-medium">Email :</span> {selectedAppointment.email}</p>
                                     <p><span className="font-medium">Téléphone :</span> {selectedAppointment.phone}</p>
@@ -821,8 +821,8 @@ export default function Index({ appointments, stats, filters }) {
                             </div>
                             
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Détails du rendez-vous</h4>
-                                <div className="space-y-2 text-sm">
+                                <h4 className="font-medium text-gray-900 mb-3">Détails du rendez-vous</h4>
+                                <div className="space-y-3 text-sm">
                                     <p><span className="font-medium">Objet :</span> {selectedAppointment.subject}</p>
                                     <p><span className="font-medium">Date souhaitée :</span> {formatDate(selectedAppointment.preferred_date)}</p>
                                     <p><span className="font-medium">Heure souhaitée :</span> {formatTime(selectedAppointment.preferred_time)}</p>
@@ -838,43 +838,57 @@ export default function Index({ appointments, stats, filters }) {
                                     </p>
                                 </div>
                             </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-3">Informations système</h4>
+                                <div className="space-y-3 text-sm">
+                                    <p><span className="font-medium">ID :</span> {selectedAppointment.id}</p>
+                                    <p><span className="font-medium">Token :</span> <code className="text-xs bg-gray-100 px-1 rounded">{selectedAppointment.secure_token}</code></p>
+                                    <p><span className="font-medium">IP :</span> {selectedAppointment.ip_address}</p>
+                                    <p><span className="font-medium">Modifié le :</span> {formatDate(selectedAppointment.updated_at)}</p>
+                                </div>
+                            </div>
                         </div>
                         
-                        {selectedAppointment.message && (
-                            <div className="mt-6">
-                                <h4 className="font-medium text-gray-900 mb-2">Message du demandeur</h4>
-                                <div className="bg-gray-50 p-4 rounded-md">
-                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAppointment.message}</p>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                            {selectedAppointment.message && (
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Message du demandeur</h4>
+                                    <div className="bg-gray-50 p-4 rounded-md">
+                                        <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAppointment.message}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        
-                        {selectedAppointment.rejection_reason && (
-                            <div className="mt-6">
-                                <h4 className="font-medium text-red-900 mb-2">Raison du refus</h4>
-                                <div className="bg-red-50 p-4 rounded-md">
-                                    <p className="text-sm text-red-700">{selectedAppointment.rejection_reason}</p>
+                            )}
+                            
+                            {selectedAppointment.rejection_reason && (
+                                <div>
+                                    <h4 className="font-medium text-red-900 mb-3">Raison du refus</h4>
+                                    <div className="bg-red-50 p-4 rounded-md">
+                                        <p className="text-sm text-red-700">{selectedAppointment.rejection_reason}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        
-                        {selectedAppointment.admin_notes && (
-                            <div className="mt-6">
-                                <h4 className="font-medium text-gray-900 mb-2">Notes administratives</h4>
-                                <div className="bg-blue-50 p-4 rounded-md">
-                                    <p className="text-sm text-blue-700">{selectedAppointment.admin_notes}</p>
+                            )}
+                            
+                            {selectedAppointment.admin_notes && (
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Notes administratives</h4>
+                                    <div className="bg-blue-50 p-4 rounded-md">
+                                        <p className="text-sm text-blue-700">{selectedAppointment.admin_notes}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                         
                         {/* Pièces jointes */}
                         {selectedAppointment.attachments && selectedAppointment.attachments.length > 0 && (
-                            <div className="mt-6">
-                                <h4 className="font-medium text-gray-900 mb-2">Pièces jointes</h4>
-                                <AttachmentViewer 
-                                    attachments={selectedAppointment.attachments} 
-                                    appointmentId={selectedAppointment.id} 
-                                />
+                            <div className="mt-8">
+                                <h4 className="font-medium text-gray-900 mb-4">Pièces jointes ({selectedAppointment.attachments.length})</h4>
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <AttachmentViewer 
+                                        attachments={selectedAppointment.attachments} 
+                                        appointmentId={selectedAppointment.id} 
+                                    />
+                                </div>
                             </div>
                         )}
                         
