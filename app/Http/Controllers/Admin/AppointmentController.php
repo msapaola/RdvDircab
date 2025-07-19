@@ -333,4 +333,39 @@ class AppointmentController extends Controller
 
         return redirect()->back()->with('success', $message);
     }
+
+    /**
+     * Download an attachment from an appointment
+     */
+    public function downloadAttachment(Appointment $appointment, $filename)
+    {
+        // Vérifier que l'appointment a des pièces jointes
+        if (!$appointment->hasAttachments()) {
+            abort(404, 'Aucune pièce jointe trouvée.');
+        }
+
+        // Chercher le fichier dans les pièces jointes
+        $attachment = null;
+        foreach ($appointment->attachments as $att) {
+            if ($att['name'] === $filename || $att['filename'] === $filename) {
+                $attachment = $att;
+                break;
+            }
+        }
+
+        if (!$attachment) {
+            abort(404, 'Fichier non trouvé.');
+        }
+
+        // Construire le chemin du fichier
+        $filePath = storage_path('app/public/appointments/' . $appointment->id . '/' . $attachment['filename']);
+
+        // Vérifier que le fichier existe
+        if (!file_exists($filePath)) {
+            abort(404, 'Fichier non trouvé sur le serveur.');
+        }
+
+        // Retourner le fichier pour téléchargement
+        return response()->download($filePath, $attachment['name']);
+    }
 }
