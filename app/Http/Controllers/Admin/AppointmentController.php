@@ -209,8 +209,11 @@ class AppointmentController extends Controller
 
 
 
+        // Charger les relations et convertir en array pour s'assurer que les données sont transmises
+        $blockedSlotsWithRelations = $blockedSlots->load('blockedBy');
+        
         return Inertia::render('Admin/BlockedSlots/Index', [
-            'blockedSlots' => $blockedSlots->load('blockedBy'),
+            'blockedSlots' => $blockedSlotsWithRelations->toArray(),
             'stats' => $stats,
             'filters' => $request->only(['date_from', 'date_to', 'reason', 'sort_by', 'sort_order']),
         ]);

@@ -6,63 +6,69 @@ require_once 'vendor/autoload.php';
 $app = require_once 'bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use App\Http\Controllers\Admin\AppointmentController;
+use App\Models\BlockedSlot;
 use Illuminate\Http\Request;
 
-echo "=== Test de la réponse du contrôleur blockedSlots ===\n\n";
+echo "=== Test direct de la requête blockedSlots ===\n\n";
 
-// Créer une requête simulée
-$request = new Request();
+// Simuler exactement ce que fait le contrôleur
+$query = BlockedSlot::query();
 
-// Créer une instance du contrôleur
-$controller = new AppointmentController();
+// Filtres (aucun pour ce test)
+// Tri
+$sortBy = 'date';
+$sortOrder = 'asc';
+$query->orderBy($sortBy, $sortOrder);
 
-// Appeler la méthode blockedSlots
-try {
-    $response = $controller->blockedSlots($request);
+// Pagination
+$blockedSlots = $query->paginate(15)->withQueryString();
+
+// Statistiques
+$stats = [
+    'total' => BlockedSlot::count(),
+    'this_month' => BlockedSlot::whereMonth('date', now()->month)->count(),
+    'next_month' => BlockedSlot::whereMonth('date', now()->addMonth()->month)->count(),
+];
+
+echo "=== Statistiques ===\n";
+echo "Total: " . $stats['total'] . "\n";
+echo "Ce mois-ci: " . $stats['this_month'] . "\n";
+echo "Mois prochain: " . $stats['next_month'] . "\n\n";
+
+echo "=== Pagination ===\n";
+echo "Total paginé: " . $blockedSlots->total() . "\n";
+echo "Count paginé: " . $blockedSlots->count() . "\n";
+echo "Has data: " . ($blockedSlots->count() > 0 ? 'OUI' : 'NON') . "\n";
+echo "From: " . $blockedSlots->firstItem() . "\n";
+echo "To: " . $blockedSlots->lastItem() . "\n\n";
+
+if ($blockedSlots->count() > 0) {
+    echo "=== Premier élément (avant load) ===\n";
+    $first = $blockedSlots->first();
+    echo "ID: " . $first->id . "\n";
+    echo "Date: " . $first->date . "\n";
+    echo "Reason: " . $first->reason . "\n";
+    echo "Blocked by ID: " . $first->blocked_by . "\n";
+    echo "Blocked by relation: " . ($first->blockedBy ? $first->blockedBy->name : 'NULL') . "\n\n";
     
-    echo "✅ Réponse obtenue avec succès\n";
-    echo "Type de réponse: " . get_class($response) . "\n\n";
+    echo "=== Test du load blockedBy ===\n";
+    $blockedSlotsWithRelations = $blockedSlots->load('blockedBy');
+    $firstWithRelation = $blockedSlotsWithRelations->first();
+    echo "Après load - Blocked by: " . ($firstWithRelation->blockedBy ? $firstWithRelation->blockedBy->name : 'NULL') . "\n\n";
     
-    // Si c'est une réponse Inertia, extraire les données
-    if (method_exists($response, 'getData')) {
-        $data = $response->getData();
-        echo "=== Données de la réponse ===\n";
-        echo "Données complètes: " . json_encode($data, JSON_PRETTY_PRINT) . "\n\n";
-        
-        if (isset($data['props']['blockedSlots'])) {
-            $blockedSlots = $data['props']['blockedSlots'];
-            echo "=== BlockedSlots ===\n";
-            echo "Total: " . ($blockedSlots['total'] ?? 'N/A') . "\n";
-            echo "Count: " . ($blockedSlots['count'] ?? 'N/A') . "\n";
-            echo "Has data: " . (isset($blockedSlots['data']) && count($blockedSlots['data']) > 0 ? 'OUI' : 'NON') . "\n";
-            echo "Data length: " . (isset($blockedSlots['data']) ? count($blockedSlots['data']) : 0) . "\n";
-            
-            if (isset($blockedSlots['data']) && count($blockedSlots['data']) > 0) {
-                echo "\n=== Premier élément ===\n";
-                $first = $blockedSlots['data'][0];
-                echo "ID: " . ($first['id'] ?? 'N/A') . "\n";
-                echo "Date: " . ($first['date'] ?? 'N/A') . "\n";
-                echo "Reason: " . ($first['reason'] ?? 'N/A') . "\n";
-                echo "Blocked by: " . (isset($first['blocked_by']) ? json_encode($first['blocked_by']) : 'N/A') . "\n";
-            }
-        }
-        
-        if (isset($data['props']['stats'])) {
-            echo "\n=== Stats ===\n";
-            $stats = $data['props']['stats'];
-            echo "Total: " . ($stats['total'] ?? 'N/A') . "\n";
-            echo "This month: " . ($stats['this_month'] ?? 'N/A') . "\n";
-            echo "Next month: " . ($stats['next_month'] ?? 'N/A') . "\n";
-        }
-    } else {
-        echo "❌ La réponse n'a pas de méthode getData()\n";
-        echo "Contenu de la réponse: " . $response . "\n";
+    echo "=== Conversion en array ===\n";
+    $blockedSlotsArray = $blockedSlotsWithRelations->toArray();
+    echo "Array keys: " . implode(', ', array_keys($blockedSlotsArray)) . "\n";
+    echo "Data count: " . count($blockedSlotsArray['data']) . "\n";
+    
+    if (count($blockedSlotsArray['data']) > 0) {
+        echo "Premier élément en array:\n";
+        $firstArray = $blockedSlotsArray['data'][0];
+        echo "ID: " . $firstArray['id'] . "\n";
+        echo "Date: " . $firstArray['date'] . "\n";
+        echo "Reason: " . $firstArray['reason'] . "\n";
+        echo "Blocked by: " . json_encode($firstArray['blocked_by']) . "\n";
     }
-    
-} catch (Exception $e) {
-    echo "❌ Erreur lors de l'appel du contrôleur:\n";
-    echo "Message: " . $e->getMessage() . "\n";
-    echo "Fichier: " . $e->getFile() . "\n";
-    echo "Ligne: " . $e->getLine() . "\n";
+} else {
+    echo "❌ Aucun créneau trouvé dans la pagination\n";
 } 
