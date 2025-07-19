@@ -1,1 +1,0 @@
-import{j as u,t as o}from"./app-J7D33OdR.js";function x({href:t,method:n,as:r,className:i="",children:e,...f}){return t?n&&r&&typeof n=="string"&&typeof r=="string"?u.jsx(o,{href:t,method:n,as:r,className:i,...f,children:e}):u.jsx(o,{href:t,className:i,...f,children:e}):(console.warn("SafeLink: href is required"),null)}export{x as S};

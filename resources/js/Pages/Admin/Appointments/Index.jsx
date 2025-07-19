@@ -636,16 +636,28 @@ export default function Index({ appointments, stats, filters }) {
                                         </div>
                                         <div className="flex space-x-2">
                                             {appointments.links.map((link, index) => (
-                                                <SafeLink
-                                                    key={index}
-                                                    href={link.url}
-                                                    className={`px-3 py-2 text-sm rounded-md ${
-                                                        link.active
-                                                            ? 'bg-blue-500 text-white'
-                                                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                                />
+                                                link.url ? (
+                                                    <SafeLink
+                                                        key={index}
+                                                        href={link.url}
+                                                        className={`px-3 py-2 text-sm rounded-md ${
+                                                            link.active
+                                                                ? 'bg-blue-500 text-white'
+                                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                        }`}
+                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        key={index}
+                                                        className={`px-3 py-2 text-sm rounded-md opacity-50 cursor-not-allowed ${
+                                                            link.active
+                                                                ? 'bg-blue-500 text-white'
+                                                                : 'bg-white text-gray-700'
+                                                        }`}
+                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                    />
+                                                )
                                             ))}
                                         </div>
                                     </div>

@@ -9,9 +9,13 @@ export default function SafeLink({
     ...props 
 }) {
     // Vérifier que href existe et est valide
-    if (!href) {
-        console.warn('SafeLink: href is required');
-        return null;
+    if (!href || href === '#' || href === '') {
+        // Retourner un span au lieu de null pour éviter les erreurs
+        return (
+            <span className={className} {...props}>
+                {children}
+            </span>
+        );
     }
 
     // Si method et as sont fournis et valides, les utiliser
