@@ -10,15 +10,7 @@ export default function Index({ blockedSlots, stats, filters }) {
     const safeStats = stats || { total: 0, this_month: 0, next_month: 0 };
     const safeFilters = filters || {};
 
-    // Debug temporaire
-    console.log('DEBUG BlockedSlots:', {
-        originalBlockedSlots: blockedSlots,
-        safeBlockedSlots: safeBlockedSlots,
-        hasData: safeBlockedSlots.data && safeBlockedSlots.data.length > 0,
-        dataLength: safeBlockedSlots.data ? safeBlockedSlots.data.length : 0,
-        total: safeBlockedSlots.total,
-        stats: safeStats
-    });
+
 
 
     const [showCreateModal, setShowCreateModal] = useState(false);
