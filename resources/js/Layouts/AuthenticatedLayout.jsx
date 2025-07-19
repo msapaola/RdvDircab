@@ -150,13 +150,14 @@ export default function AuthenticatedLayout({ header, children }) {
                             <ResponsiveNavLink href={route('profile.edit')}>
                                 Profile
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
+                            <Link
                                 href={route('logout')}
+                                method="post"
                                 as="button"
+                                className="block w-full border-l-4 border-transparent py-2 pe-4 ps-3 text-start text-base font-medium text-gray-600 transition duration-150 ease-in-out hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 focus:outline-none"
                             >
                                 Log Out
-                            </ResponsiveNavLink>
+                            </Link>
                         </div>
                     </div>
                 </div>
