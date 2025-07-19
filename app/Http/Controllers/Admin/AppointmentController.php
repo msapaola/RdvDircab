@@ -257,6 +257,32 @@ class AppointmentController extends Controller
         return redirect()->back()->with('success', 'Créneau bloqué créé avec succès.');
     }
 
+    public function updateBlockedSlot(Request $request, BlockedSlot $blockedSlot)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'reason' => 'required|string|max:255',
+        ]);
+
+        $oldReason = $blockedSlot->reason;
+        
+        $blockedSlot->update([
+            'date' => $request->date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'reason' => $request->reason,
+        ]);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($blockedSlot)
+            ->log("Créneau bloqué modifié : {$oldReason} → {$request->reason}");
+
+        return redirect()->back()->with('success', 'Créneau bloqué modifié avec succès.');
+    }
+
     public function destroyBlockedSlot(BlockedSlot $blockedSlot)
     {
         $reason = $blockedSlot->reason;
