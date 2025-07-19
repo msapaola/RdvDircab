@@ -10,14 +10,7 @@ export default function Index({ blockedSlots, stats, filters }) {
     const safeStats = stats || { total: 0, this_month: 0, next_month: 0 };
     const safeFilters = filters || {};
 
-    // Debug logging
-    console.log('BlockedSlots Debug:', {
-        originalBlockedSlots: blockedSlots,
-        safeBlockedSlots: safeBlockedSlots,
-        hasData: safeBlockedSlots.data && safeBlockedSlots.data.length > 0,
-        dataLength: safeBlockedSlots.data ? safeBlockedSlots.data.length : 0,
-        stats: safeStats
-    });
+
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -266,7 +259,7 @@ export default function Index({ blockedSlots, stats, filters }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {slot.blocked_by?.name || 'Système'}
+                                                {slot.blocked_by && slot.blocked_by.name ? slot.blocked_by.name : 'Système'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-3">
