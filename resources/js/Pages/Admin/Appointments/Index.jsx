@@ -161,21 +161,24 @@ export default function Index({ appointments, stats, filters }) {
             return;
         }
 
+        // Préparer les données à envoyer
+        const requestData = {
+            appointment_ids: selectedAppointments,
+            action: bulkAction,
+        };
+
+        // Ajouter la raison seulement si elle est nécessaire et non vide
+        if ((bulkAction === 'reject' || bulkAction === 'cancel') && bulkReason.trim()) {
+            requestData.reason = bulkReason.trim();
+        }
+
         console.log('Sending bulk action request', {
             route: route('admin.appointments.bulk-action'),
-            data: {
-                appointment_ids: selectedAppointments,
-                action: bulkAction,
-                reason: bulkReason,
-            }
+            data: requestData
         });
 
         // Utiliser Inertia pour les actions en lot
-        router.post(route('admin.appointments.bulk-action'), {
-            appointment_ids: selectedAppointments,
-            action: bulkAction,
-            reason: bulkReason,
-        }, {
+        router.post(route('admin.appointments.bulk-action'), requestData, {
             onSuccess: () => {
                 console.log('Bulk action successful');
                 setShowBulkActionsModal(false);

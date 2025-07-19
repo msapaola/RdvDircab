@@ -283,7 +283,7 @@ class AppointmentController extends Controller
             'appointment_ids' => 'required|array|min:1',
             'appointment_ids.*' => 'exists:appointments,id',
             'action' => 'required|in:accept,reject,cancel,complete',
-            'reason' => 'required_if:action,reject,cancel|string|max:500',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         $appointments = Appointment::whereIn('id', $request->appointment_ids)->get();
@@ -309,7 +309,10 @@ class AppointmentController extends Controller
                         break;
                     
                     case 'reject':
-                        if ($appointment->reject(auth()->user(), $request->reason)) {
+                        if (empty($request->reason)) {
+                            $errorCount++;
+                            \Log::error('Reject action requires a reason', ['id' => $appointment->id]);
+                        } else if ($appointment->reject(auth()->user(), $request->reason)) {
                             $successCount++;
                             \Log::info('Appointment rejected', ['id' => $appointment->id]);
                         } else {
@@ -319,7 +322,10 @@ class AppointmentController extends Controller
                         break;
                     
                     case 'cancel':
-                        if ($appointment->cancel(auth()->user(), $request->reason)) {
+                        if (empty($request->reason)) {
+                            $errorCount++;
+                            \Log::error('Cancel action requires a reason', ['id' => $appointment->id]);
+                        } else if ($appointment->cancel(auth()->user(), $request->reason)) {
                             $successCount++;
                             \Log::info('Appointment canceled', ['id' => $appointment->id]);
                         } else {
