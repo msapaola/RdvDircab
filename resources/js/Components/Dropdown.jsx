@@ -86,10 +86,19 @@ const Content = ({
     );
 };
 
-const DropdownLink = ({ className = '', children, ...props }) => {
+const DropdownLink = ({ className = '', children, method, as, ...props }) => {
+    // Filtrer les props pour éviter de passer method/as si ils sont null/undefined
+    const linkProps = { ...props };
+    
+    // Si method et as sont fournis et valides, les ajouter aux props
+    if (method && as && typeof method === 'string' && typeof as === 'string') {
+        linkProps.method = method;
+        linkProps.as = as;
+    }
+
     return (
         <Link
-            {...props}
+            {...linkProps}
             className={
                 'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ' +
                 className
