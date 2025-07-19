@@ -11,6 +11,7 @@ export default function Index({ appointments, stats, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showBulkActionsModal, setShowBulkActionsModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [selectedAppointments, setSelectedAppointments] = useState([]);
@@ -41,6 +42,19 @@ export default function Index({ appointments, stats, filters }) {
         sort_by: filters.sort_by || 'created_at',
         sort_order: filters.sort_order || 'desc',
         per_page: filters.per_page || 20,
+    });
+
+    const editForm = useForm({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        preferred_date: '',
+        preferred_time: '',
+        priority: 'normal',
+        status: 'pending',
+        admin_notes: '',
     });
 
     const handleFilter = () => {
@@ -96,6 +110,33 @@ export default function Index({ appointments, stats, filters }) {
         if (confirm('Marquer ce rendez-vous comme terminé ?')) {
             router.post(route('admin.appointments.complete', appointment.id));
         }
+    };
+
+    const handleEdit = () => {
+        editForm.put(route('admin.appointments.update', selectedAppointment.id), {
+            onSuccess: () => {
+                setShowEditModal(false);
+                setSelectedAppointment(null);
+                editForm.reset();
+            }
+        });
+    };
+
+    const openEditModal = (appointment) => {
+        setSelectedAppointment(appointment);
+        editForm.setData({
+            name: appointment.name,
+            email: appointment.email,
+            phone: appointment.phone,
+            subject: appointment.subject,
+            message: appointment.message || '',
+            preferred_date: appointment.preferred_date,
+            preferred_time: appointment.preferred_time,
+            priority: appointment.priority,
+            status: appointment.status,
+            admin_notes: appointment.admin_notes || '',
+        });
+        setShowEditModal(true);
     };
 
     const handleBulkAction = () => {
@@ -168,23 +209,25 @@ export default function Index({ appointments, stats, filters }) {
         setShowDetailsModal(true);
     };
 
-    const getPriorityColor = (priority) => {
+    const getPriorityDisplay = (priority) => {
         switch (priority) {
-            case 'urgent': return 'text-red-600 bg-red-100';
-            case 'official': return 'text-blue-600 bg-blue-100';
-            default: return 'text-gray-600 bg-gray-100';
+            case 'urgent': return { text: 'URGENT', class: 'text-red-700 bg-red-100 border-red-300' };
+            case 'official': return { text: 'OFFICIEL', class: 'text-blue-700 bg-blue-100 border-blue-300' };
+            case 'normal': return { text: 'NORMALE', class: 'text-gray-700 bg-gray-100 border-gray-300' };
+            default: return { text: 'NORMALE', class: 'text-gray-700 bg-gray-100 border-gray-300' };
         }
     };
 
-    const getStatusColor = (status) => {
+    const getStatusDisplay = (status) => {
         switch (status) {
-            case 'pending': return 'text-orange-600 bg-orange-100';
-            case 'accepted': return 'text-green-600 bg-green-100';
-            case 'rejected': return 'text-red-600 bg-red-100';
-            case 'canceled':
-            case 'canceled_by_requester': return 'text-gray-600 bg-gray-100';
-            case 'completed': return 'text-blue-600 bg-blue-100';
-            default: return 'text-gray-600 bg-gray-100';
+            case 'pending': return { text: 'EN ATTENTE', class: 'text-orange-700 bg-orange-100 border-orange-300' };
+            case 'accepted': return { text: 'ACCEPTÉ', class: 'text-green-700 bg-green-100 border-green-300' };
+            case 'rejected': return { text: 'REFUSÉ', class: 'text-red-700 bg-red-100 border-red-300' };
+            case 'canceled': return { text: 'ANNULÉ', class: 'text-gray-700 bg-gray-100 border-gray-300' };
+            case 'canceled_by_requester': return { text: 'ANNULÉ PAR LE CLIENT', class: 'text-gray-700 bg-gray-100 border-gray-300' };
+            case 'completed': return { text: 'TERMINÉ', class: 'text-blue-700 bg-blue-100 border-blue-300' };
+            case 'expired': return { text: 'EXPIRÉ', class: 'text-yellow-700 bg-yellow-100 border-yellow-300' };
+            default: return { text: 'EN ATTENTE', class: 'text-orange-700 bg-orange-100 border-orange-300' };
         }
     };
 
@@ -528,13 +571,13 @@ export default function Index({ appointments, stats, filters }) {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(appointment.priority)}`}>
-                                                        {appointment.formatted_priority}
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(appointment.priority).class}`}>
+                                                        {getPriorityDisplay(appointment.priority).text}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
-                                                        {appointment.formatted_status}
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusDisplay(appointment.status).class}`}>
+                                                        {getStatusDisplay(appointment.status).text}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -544,6 +587,13 @@ export default function Index({ appointments, stats, filters }) {
                                                             className="text-blue-600 hover:text-blue-900"
                                                         >
                                                             👁️ Voir
+                                                        </button>
+                                                        
+                                                        <button
+                                                            onClick={() => openEditModal(appointment)}
+                                                            className="text-purple-600 hover:text-purple-900"
+                                                        >
+                                                            ✏️ Modifier
                                                         </button>
                                                         
                                                         {appointment.status === 'pending' && (
@@ -661,11 +711,11 @@ export default function Index({ appointments, stats, filters }) {
                                         </div>
                                         
                                         <div className="flex items-center justify-between mb-4">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(appointment.priority)}`}>
-                                                {appointment.formatted_priority}
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(appointment.priority).class}`}>
+                                                {getPriorityDisplay(appointment.priority).text}
                                             </span>
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
-                                                {appointment.formatted_status}
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusDisplay(appointment.status).class}`}>
+                                                {getStatusDisplay(appointment.status).text}
                                             </span>
                                         </div>
                                         
@@ -675,6 +725,13 @@ export default function Index({ appointments, stats, filters }) {
                                                 className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
                                             >
                                                 👁️ Détails
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => openEditModal(appointment)}
+                                                className="bg-purple-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-purple-700"
+                                            >
+                                                ✏️ Modifier
                                             </button>
                                             
                                             {appointment.status === 'pending' && (
@@ -730,13 +787,13 @@ export default function Index({ appointments, stats, filters }) {
                                     <p><span className="font-medium">Date souhaitée :</span> {formatDate(selectedAppointment.preferred_date)}</p>
                                     <p><span className="font-medium">Heure souhaitée :</span> {formatTime(selectedAppointment.preferred_time)}</p>
                                     <p><span className="font-medium">Priorité :</span> 
-                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(selectedAppointment.priority)}`}>
-                                            {selectedAppointment.formatted_priority}
+                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(selectedAppointment.priority).class}`}>
+                                            {getPriorityDisplay(selectedAppointment.priority).text}
                                         </span>
                                     </p>
                                     <p><span className="font-medium">Statut :</span> 
-                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedAppointment.status)}`}>
-                                            {selectedAppointment.formatted_status}
+                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusDisplay(selectedAppointment.status).class}`}>
+                                            {getStatusDisplay(selectedAppointment.status).text}
                                         </span>
                                     </p>
                                 </div>
@@ -775,6 +832,196 @@ export default function Index({ appointments, stats, filters }) {
                                 Fermer
                             </SecondaryButton>
                         </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Modal de modification */}
+            <Modal show={showEditModal} onClose={() => setShowEditModal(false)} maxWidth="4xl">
+                {selectedAppointment && (
+                    <div className="p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-6">
+                            Modifier le rendez-vous - {selectedAppointment.name}
+                        </h3>
+                        
+                        <form onSubmit={(e) => { e.preventDefault(); handleEdit(); }}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Informations du demandeur */}
+                                <div className="space-y-4">
+                                    <h4 className="font-medium text-gray-900 border-b pb-2">Informations du demandeur</h4>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
+                                        <input
+                                            type="text"
+                                            value={editForm.data.name}
+                                            onChange={(e) => editForm.setData('name', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            required
+                                        />
+                                        {editForm.errors.name && (
+                                            <p className="text-red-600 text-xs mt-1">{editForm.errors.name}</p>
+                                        )}
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                        <input
+                                            type="email"
+                                            value={editForm.data.email}
+                                            onChange={(e) => editForm.setData('email', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            required
+                                        />
+                                        {editForm.errors.email && (
+                                            <p className="text-red-600 text-xs mt-1">{editForm.errors.email}</p>
+                                        )}
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone *</label>
+                                        <input
+                                            type="tel"
+                                            value={editForm.data.phone}
+                                            onChange={(e) => editForm.setData('phone', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            required
+                                        />
+                                        {editForm.errors.phone && (
+                                            <p className="text-red-600 text-xs mt-1">{editForm.errors.phone}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                {/* Détails du rendez-vous */}
+                                <div className="space-y-4">
+                                    <h4 className="font-medium text-gray-900 border-b pb-2">Détails du rendez-vous</h4>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Objet *</label>
+                                        <input
+                                            type="text"
+                                            value={editForm.data.subject}
+                                            onChange={(e) => editForm.setData('subject', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            required
+                                        />
+                                        {editForm.errors.subject && (
+                                            <p className="text-red-600 text-xs mt-1">{editForm.errors.subject}</p>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Date souhaitée *</label>
+                                            <input
+                                                type="date"
+                                                value={editForm.data.preferred_date}
+                                                onChange={(e) => editForm.setData('preferred_date', e.target.value)}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                required
+                                            />
+                                            {editForm.errors.preferred_date && (
+                                                <p className="text-red-600 text-xs mt-1">{editForm.errors.preferred_date}</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Heure souhaitée *</label>
+                                            <input
+                                                type="time"
+                                                value={editForm.data.preferred_time}
+                                                onChange={(e) => editForm.setData('preferred_time', e.target.value)}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                required
+                                            />
+                                            {editForm.errors.preferred_time && (
+                                                <p className="text-red-600 text-xs mt-1">{editForm.errors.preferred_time}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Priorité *</label>
+                                            <select
+                                                value={editForm.data.priority}
+                                                onChange={(e) => editForm.setData('priority', e.target.value)}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                required
+                                            >
+                                                <option value="normal">NORMALE</option>
+                                                <option value="urgent">URGENT</option>
+                                                <option value="official">OFFICIEL</option>
+                                            </select>
+                                            {editForm.errors.priority && (
+                                                <p className="text-red-600 text-xs mt-1">{editForm.errors.priority}</p>
+                                            )}
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Statut *</label>
+                                            <select
+                                                value={editForm.data.status}
+                                                onChange={(e) => editForm.setData('status', e.target.value)}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                required
+                                            >
+                                                <option value="pending">EN ATTENTE</option>
+                                                <option value="accepted">ACCEPTÉ</option>
+                                                <option value="rejected">REFUSÉ</option>
+                                                <option value="canceled">ANNULÉ</option>
+                                                <option value="completed">TERMINÉ</option>
+                                                <option value="expired">EXPIRÉ</option>
+                                            </select>
+                                            {editForm.errors.status && (
+                                                <p className="text-red-600 text-xs mt-1">{editForm.errors.status}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Message et notes */}
+                            <div className="mt-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Message du demandeur</label>
+                                    <textarea
+                                        value={editForm.data.message}
+                                        onChange={(e) => editForm.setData('message', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        rows="3"
+                                        placeholder="Message du demandeur..."
+                                    />
+                                    {editForm.errors.message && (
+                                        <p className="text-red-600 text-xs mt-1">{editForm.errors.message}</p>
+                                    )}
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes administratives</label>
+                                    <textarea
+                                        value={editForm.data.admin_notes}
+                                        onChange={(e) => editForm.setData('admin_notes', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        rows="3"
+                                        placeholder="Notes administratives..."
+                                    />
+                                    {editForm.errors.admin_notes && (
+                                        <p className="text-red-600 text-xs mt-1">{editForm.errors.admin_notes}</p>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6 flex justify-end space-x-3">
+                                <SecondaryButton type="button" onClick={() => setShowEditModal(false)}>
+                                    Annuler
+                                </SecondaryButton>
+                                <PrimaryButton type="submit" disabled={editForm.processing}>
+                                    {editForm.processing ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                                </PrimaryButton>
+                            </div>
+                        </form>
                     </div>
                 )}
             </Modal>
