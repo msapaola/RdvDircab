@@ -141,7 +141,7 @@ export default function AttachmentViewer({ attachments, appointmentId }) {
     };
 
     const openPreview = (attachment) => {
-        const downloadUrl = route('admin.appointments.attachments.download', [appointmentId, attachment.filename || attachment.name]);
+        const downloadUrl = route('admin.appointments.attachments.download', [appointmentId, attachment.name]);
         setPreviewUrl(downloadUrl);
         setPreviewFileName(attachment.name);
     };
@@ -200,7 +200,7 @@ export default function AttachmentViewer({ attachments, appointmentId }) {
                             
                             <div className="flex space-x-2">
                                 <a
-                                    href={route('admin.appointments.attachments.download', [appointmentId, attachment.filename || attachment.name])}
+                                    href={route('admin.appointments.attachments.download', [appointmentId, attachment.name])}
                                     className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
                                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">

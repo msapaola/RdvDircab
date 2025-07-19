@@ -347,21 +347,32 @@ class AppointmentController extends Controller
         // Chercher le fichier dans les pièces jointes
         $attachment = null;
         foreach ($appointment->attachments as $att) {
-            if ($att['name'] === $filename || $att['filename'] === $filename) {
+            if ($att['name'] === $filename) {
                 $attachment = $att;
                 break;
             }
         }
 
         if (!$attachment) {
-            abort(404, 'Fichier non trouvé.');
+            \Log::error('Fichier non trouvé dans les pièces jointes', [
+                'appointment_id' => $appointment->id,
+                'requested_filename' => $filename,
+                'available_attachments' => collect($appointment->attachments)->pluck('name')->toArray()
+            ]);
+            abort(404, 'Fichier non trouvé dans les pièces jointes.');
         }
 
-        // Construire le chemin du fichier
-        $filePath = storage_path('app/public/appointments/' . $appointment->id . '/' . $attachment['filename']);
+        // Construire le chemin du fichier en utilisant le path stocké
+        $filePath = storage_path('app/public/' . $attachment['path']);
 
         // Vérifier que le fichier existe
         if (!file_exists($filePath)) {
+            \Log::error('Fichier non trouvé sur le serveur', [
+                'appointment_id' => $appointment->id,
+                'filename' => $filename,
+                'file_path' => $filePath,
+                'attachment_path' => $attachment['path']
+            ]);
             abort(404, 'Fichier non trouvé sur le serveur.');
         }
 
