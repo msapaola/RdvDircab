@@ -271,14 +271,6 @@ class AppointmentController extends Controller
 
     public function bulkAction(Request $request)
     {
-        // Log pour déboguer
-        \Log::info('Bulk action request received', [
-            'action' => $request->action,
-            'appointment_ids' => $request->appointment_ids,
-            'reason' => $request->reason ?? 'none',
-            'user' => auth()->user()->email
-        ]);
-
         $request->validate([
             'appointment_ids' => 'required|array|min:1',
             'appointment_ids.*' => 'exists:appointments,id',
@@ -290,67 +282,47 @@ class AppointmentController extends Controller
         $successCount = 0;
         $errorCount = 0;
 
-        \Log::info('Processing bulk action', [
-            'appointments_count' => $appointments->count(),
-            'action' => $request->action
-        ]);
-
         foreach ($appointments as $appointment) {
             try {
                 switch ($request->action) {
                     case 'accept':
                         if ($appointment->accept(auth()->user())) {
                             $successCount++;
-                            \Log::info('Appointment accepted', ['id' => $appointment->id]);
                         } else {
                             $errorCount++;
-                            \Log::error('Failed to accept appointment', ['id' => $appointment->id]);
                         }
                         break;
                     
                     case 'reject':
                         if (empty($request->reason)) {
                             $errorCount++;
-                            \Log::error('Reject action requires a reason', ['id' => $appointment->id]);
                         } else if ($appointment->reject(auth()->user(), $request->reason)) {
                             $successCount++;
-                            \Log::info('Appointment rejected', ['id' => $appointment->id]);
                         } else {
                             $errorCount++;
-                            \Log::error('Failed to reject appointment', ['id' => $appointment->id]);
                         }
                         break;
                     
                     case 'cancel':
                         if (empty($request->reason)) {
                             $errorCount++;
-                            \Log::error('Cancel action requires a reason', ['id' => $appointment->id]);
                         } else if ($appointment->cancel(auth()->user(), $request->reason)) {
                             $successCount++;
-                            \Log::info('Appointment canceled', ['id' => $appointment->id]);
                         } else {
                             $errorCount++;
-                            \Log::error('Failed to cancel appointment', ['id' => $appointment->id]);
                         }
                         break;
                     
                     case 'complete':
                         if ($appointment->markAsCompleted(auth()->user())) {
                             $successCount++;
-                            \Log::info('Appointment completed', ['id' => $appointment->id]);
                         } else {
                             $errorCount++;
-                            \Log::error('Failed to complete appointment', ['id' => $appointment->id]);
                         }
                         break;
                 }
             } catch (\Exception $e) {
                 $errorCount++;
-                \Log::error('Exception in bulk action', [
-                    'appointment_id' => $appointment->id,
-                    'action' => $request->action,
-                    'error' => $e->getMessage()
-                ]);
             }
         }
 
@@ -358,12 +330,6 @@ class AppointmentController extends Controller
         if ($errorCount > 0) {
             $message .= ", {$errorCount} erreurs";
         }
-
-        \Log::info('Bulk action completed', [
-            'success_count' => $successCount,
-            'error_count' => $errorCount,
-            'message' => $message
-        ]);
 
         return redirect()->back()->with('success', $message);
     }

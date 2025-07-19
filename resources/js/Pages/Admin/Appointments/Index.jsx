@@ -124,13 +124,21 @@ export default function Index({ appointments, stats, filters }) {
 
     const openEditModal = (appointment) => {
         setSelectedAppointment(appointment);
+        
+        // Formater la date pour l'input HTML (yyyy-MM-dd)
+        const formatDateForInput = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        };
+        
         editForm.setData({
             name: appointment.name,
             email: appointment.email,
             phone: appointment.phone,
             subject: appointment.subject,
             message: appointment.message || '',
-            preferred_date: appointment.preferred_date,
+            preferred_date: formatDateForInput(appointment.preferred_date),
             preferred_time: appointment.preferred_time,
             priority: appointment.priority,
             status: appointment.status,
@@ -140,12 +148,6 @@ export default function Index({ appointments, stats, filters }) {
     };
 
     const handleBulkAction = () => {
-        console.log('handleBulkAction called', {
-            bulkAction,
-            selectedAppointments,
-            bulkReason
-        });
-
         if (!bulkAction) {
             alert('Veuillez sélectionner une action.');
             return;
@@ -172,22 +174,15 @@ export default function Index({ appointments, stats, filters }) {
             requestData.reason = bulkReason.trim();
         }
 
-        console.log('Sending bulk action request', {
-            route: route('admin.appointments.bulk-action'),
-            data: requestData
-        });
-
         // Utiliser Inertia pour les actions en lot
         router.post(route('admin.appointments.bulk-action'), requestData, {
             onSuccess: () => {
-                console.log('Bulk action successful');
                 setShowBulkActionsModal(false);
                 setSelectedAppointments([]);
                 setBulkAction('');
                 setBulkReason('');
             },
             onError: (errors) => {
-                console.error('Bulk action failed', errors);
                 alert('Erreur lors de l\'exécution de l\'action en lot.');
             }
         });
