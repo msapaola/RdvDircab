@@ -5,6 +5,7 @@ import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
+import DashboardMenu from '@/Components/DashboardMenu';
 
 export default function Dashboard({ stats, nextAppointments, statsByDay, appointments, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
@@ -121,6 +122,8 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
         <>
             <Head title="Tableau de bord - Administration" />
             <div className="min-h-screen bg-gray-50">
+                <DashboardMenu />
+                
                 <header className="bg-white shadow-sm border-b mb-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                         <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>

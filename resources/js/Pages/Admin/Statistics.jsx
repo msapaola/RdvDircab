@@ -1,22 +1,24 @@
 import { Head } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import DashboardMenu from '@/Components/DashboardMenu';
 import { useState } from 'react';
 
 export default function Statistics({ stats, appointmentsByMonth, appointmentsByPriority, userStats }) {
     const [selectedPeriod, setSelectedPeriod] = useState('30');
 
     return (
-        <AdminLayout
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Statistiques Avancées
-                </h2>
-            }
-        >
+        <>
             <Head title="Statistiques" />
+            <div className="min-h-screen bg-gray-50">
+                <DashboardMenu />
+                
+                <header className="bg-white shadow-sm border-b mb-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <h1 className="text-3xl font-bold text-gray-900">Statistiques Avancées</h1>
+                        <p className="text-gray-600 mt-2">Analyse détaillée des performances</p>
+                    </div>
+                </header>
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Période de sélection */}
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -238,6 +240,6 @@ export default function Statistics({ stats, appointmentsByMonth, appointmentsByP
                     </div>
                 </div>
             </div>
-        </AdminLayout>
+        </>
     );
 } 

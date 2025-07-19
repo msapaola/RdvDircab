@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import DashboardMenu from '@/Components/DashboardMenu';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -58,17 +58,19 @@ export default function Settings({ settings, businessHours, workingDays }) {
     };
 
     return (
-        <AdminLayout
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Paramètres
-                </h2>
-            }
-        >
+        <>
             <Head title="Paramètres" />
+            <div className="min-h-screen bg-gray-50">
+                <DashboardMenu />
+                
+                <header className="bg-white shadow-sm border-b mb-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
+                        <p className="text-gray-600 mt-2">Configuration du système</p>
+                    </div>
+                </header>
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Onglets */}
                     <div className="mb-6 border-b border-gray-200">
                         <nav className="-mb-px flex space-x-8">
@@ -345,6 +347,6 @@ export default function Settings({ settings, businessHours, workingDays }) {
                     )}
                 </div>
             </div>
-        </AdminLayout>
+        </>
     );
 } 
