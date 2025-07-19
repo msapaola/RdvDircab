@@ -10,6 +10,16 @@ export default function Index({ blockedSlots, stats, filters }) {
     const safeStats = stats || { total: 0, this_month: 0, next_month: 0 };
     const safeFilters = filters || {};
 
+    // Debug temporaire
+    console.log('DEBUG BlockedSlots:', {
+        originalBlockedSlots: blockedSlots,
+        safeBlockedSlots: safeBlockedSlots,
+        hasData: safeBlockedSlots.data && safeBlockedSlots.data.length > 0,
+        dataLength: safeBlockedSlots.data ? safeBlockedSlots.data.length : 0,
+        total: safeBlockedSlots.total,
+        stats: safeStats
+    });
+
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -214,7 +224,7 @@ export default function Index({ blockedSlots, stats, filters }) {
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-900">
-                                Créneaux bloqués ({safeBlockedSlots.total})
+                                Créneaux bloqués ({safeBlockedSlots.total || safeStats.total || 0})
                             </h2>
                         </div>
                         
