@@ -36,6 +36,7 @@ Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admi
         Route::post('/{appointment}/complete', [AppointmentController::class, 'complete'])->name('complete');
         Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
         Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('destroy');
+        Route::post('/bulk-action', [AppointmentController::class, 'bulkAction'])->name('bulk-action');
         
         // Export des rendez-vous - Admin seulement
         Route::get('/export/csv', [AppointmentController::class, 'exportCsv'])->name('export.csv')->middleware('role:admin');

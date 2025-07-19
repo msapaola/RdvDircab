@@ -120,16 +120,35 @@ class AppointmentController extends Controller
     public function update(Request $request, Appointment $appointment)
     {
         $request->validate([
-            'admin_notes' => 'nullable|string|max:1000',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'subject' => 'required|string|max:255',
+            'message' => 'nullable|string|max:1000',
             'preferred_date' => 'required|date',
             'preferred_time' => 'required|date_format:H:i',
+            'priority' => 'required|in:normal,urgent,official',
+            'status' => 'required|in:pending,accepted,rejected,canceled,completed,expired',
+            'admin_notes' => 'nullable|string|max:1000',
         ]);
 
         $appointment->update([
-            'admin_notes' => $request->admin_notes,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'subject' => $request->subject,
+            'message' => $request->message,
             'preferred_date' => $request->preferred_date,
             'preferred_time' => $request->preferred_time,
+            'priority' => $request->priority,
+            'status' => $request->status,
+            'admin_notes' => $request->admin_notes,
         ]);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($appointment)
+            ->log('Rendez-vous modifié');
 
         return redirect()->back()->with('success', 'Rendez-vous modifié avec succès.');
     }
@@ -248,5 +267,66 @@ class AppointmentController extends Controller
             ->log("Créneau bloqué supprimé : {$reason}");
 
         return redirect()->back()->with('success', 'Créneau bloqué supprimé avec succès.');
+    }
+
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'appointment_ids' => 'required|array|min:1',
+            'appointment_ids.*' => 'exists:appointments,id',
+            'action' => 'required|in:accept,reject,cancel,complete',
+            'reason' => 'required_if:action,reject,cancel|string|max:500',
+        ]);
+
+        $appointments = Appointment::whereIn('id', $request->appointment_ids)->get();
+        $successCount = 0;
+        $errorCount = 0;
+
+        foreach ($appointments as $appointment) {
+            try {
+                switch ($request->action) {
+                    case 'accept':
+                        if ($appointment->accept(auth()->user())) {
+                            $successCount++;
+                        } else {
+                            $errorCount++;
+                        }
+                        break;
+                    
+                    case 'reject':
+                        if ($appointment->reject(auth()->user(), $request->reason)) {
+                            $successCount++;
+                        } else {
+                            $errorCount++;
+                        }
+                        break;
+                    
+                    case 'cancel':
+                        if ($appointment->cancel(auth()->user(), $request->reason)) {
+                            $successCount++;
+                        } else {
+                            $errorCount++;
+                        }
+                        break;
+                    
+                    case 'complete':
+                        if ($appointment->markAsCompleted(auth()->user())) {
+                            $successCount++;
+                        } else {
+                            $errorCount++;
+                        }
+                        break;
+                }
+            } catch (\Exception $e) {
+                $errorCount++;
+            }
+        }
+
+        $message = "Action en lot terminée : {$successCount} succès";
+        if ($errorCount > 0) {
+            $message .= ", {$errorCount} erreurs";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 }

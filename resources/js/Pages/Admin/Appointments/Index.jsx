@@ -155,26 +155,18 @@ export default function Index({ appointments, stats, filters }) {
             return;
         }
 
-        const promises = selectedAppointments.map(appointmentId => {
-            const data = bulkAction === 'reject' ? { rejection_reason: bulkReason } :
-                        bulkAction === 'cancel' ? { admin_notes: bulkReason } : {};
-            
-            return fetch(route(`admin.appointments.${bulkAction}`, appointmentId), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(data)
-            });
-        });
-
-        Promise.all(promises).then(() => {
-            setShowBulkActionsModal(false);
-            setSelectedAppointments([]);
-            setBulkAction('');
-            setBulkReason('');
-            router.reload({ only: ['appointments', 'stats'] });
+        // Utiliser Inertia pour les actions en lot
+        router.post(route('admin.appointments.bulk-action'), {
+            appointment_ids: selectedAppointments,
+            action: bulkAction,
+            reason: bulkReason,
+        }, {
+            onSuccess: () => {
+                setShowBulkActionsModal(false);
+                setSelectedAppointments([]);
+                setBulkAction('');
+                setBulkReason('');
+            }
         });
     };
 
