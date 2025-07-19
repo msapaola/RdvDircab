@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - Accessible par admin et assistant
@@ -14,6 +15,20 @@ Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admi
     // Appointments management - Accessible par admin et assistant
     Route::prefix('appointments')->name('appointments.')->group(function () {
         Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::get('/test', function () {
+            return Inertia::render('Admin/Appointments/TestIndex', [
+                'appointments' => \App\Models\Appointment::paginate(10),
+                'stats' => [
+                    'total' => \App\Models\Appointment::count(),
+                    'pending' => \App\Models\Appointment::where('status', 'pending')->count(),
+                    'accepted' => \App\Models\Appointment::where('status', 'accepted')->count(),
+                    'rejected' => \App\Models\Appointment::where('status', 'rejected')->count(),
+                    'canceled' => \App\Models\Appointment::whereIn('status', ['canceled', 'canceled_by_requester'])->count(),
+                    'completed' => \App\Models\Appointment::where('status', 'completed')->count(),
+                ],
+                'filters' => request()->all()
+            ]);
+        })->name('test');
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('show');
         Route::post('/{appointment}/accept', [AppointmentController::class, 'accept'])->name('accept');
         Route::post('/{appointment}/reject', [AppointmentController::class, 'reject'])->name('reject');
