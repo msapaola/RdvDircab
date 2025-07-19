@@ -210,9 +210,7 @@ class AppointmentController extends Controller
 
 
         return Inertia::render('Admin/BlockedSlots/Index', [
-            'blockedSlots' => $blockedSlots->load(['blockedBy' => function($query) {
-                $query->withTrashed(); // Inclure les utilisateurs supprimés si nécessaire
-            }]),
+            'blockedSlots' => $blockedSlots->load('blockedBy'),
             'stats' => $stats,
             'filters' => $request->only(['date_from', 'date_to', 'reason', 'sort_by', 'sort_order']),
         ]);
