@@ -23,7 +23,7 @@ export default function Index({ blockedSlots, stats, filters }) {
     });
 
     const createForm = useForm({
-        date: '',
+        date: formatDateForInput(new Date()), // Date d'aujourd'hui par défaut
         start_time: '',
         end_time: '',
         reason: '',
@@ -52,6 +52,15 @@ export default function Index({ blockedSlots, stats, filters }) {
             onSuccess: () => {
                 setShowCreateModal(false);
                 createForm.reset();
+                // Réinitialiser avec des valeurs sûres
+                createForm.setData({
+                    date: formatDateForInput(new Date()),
+                    start_time: '',
+                    end_time: '',
+                    reason: '',
+                    recurring: false,
+                    recurring_until: '',
+                });
             },
         });
     };
@@ -77,8 +86,9 @@ export default function Index({ blockedSlots, stats, filters }) {
 
     const openEditModal = (slot) => {
         setSelectedSlot(slot);
+        
         editForm.setData({
-            date: slot.date,
+            date: formatDateForInput(slot.date),
             start_time: slot.start_time,
             end_time: slot.end_time,
             reason: slot.reason,
@@ -102,6 +112,11 @@ export default function Index({ blockedSlots, stats, filters }) {
             month: 'long',
             day: 'numeric',
         });
+    };
+
+    const formatDateForInput = (date) => {
+        if (!date) return '';
+        return new Date(date).toISOString().split('T')[0];
     };
 
     return (
@@ -415,7 +430,7 @@ export default function Index({ blockedSlots, stats, filters }) {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
                                 <input
                                     type="date"
-                                    value={createForm.data.recurring_until}
+                                    value={createForm.data.recurring_until || formatDateForInput(new Date())}
                                     onChange={(e) => createForm.setData('recurring_until', e.target.value)}
                                     className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 />
