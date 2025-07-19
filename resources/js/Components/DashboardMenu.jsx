@@ -4,6 +4,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import SafeLink from '@/Components/SafeLink';
 
 export default function DashboardMenu() {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
@@ -118,9 +119,9 @@ export default function DashboardMenu() {
                                     <Dropdown.Link href={route('profile.edit')}>
                                         Profil
                                     </Dropdown.Link>
-                                    <Dropdown.Link href={route('logout')} method="post" as="button">
+                                    <SafeLink href={route('logout')} method="post" as="button" className="block w-full px-4 py-2 text-left text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                                         Déconnexion
-                                    </Dropdown.Link>
+                                    </SafeLink>
                                 </Dropdown.Content>
                             </Dropdown>
                         </div>
@@ -185,9 +186,9 @@ export default function DashboardMenu() {
                         <ResponsiveNavLink href={route('profile.edit')}>
                             Profil
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink method="post" href={route('logout')} as="button">
+                        <SafeLink method="post" href={route('logout')} as="button" className="block w-full px-4 py-2 text-left text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                             Déconnexion
-                        </ResponsiveNavLink>
+                        </SafeLink>
                     </div>
                 </div>
             </div>
