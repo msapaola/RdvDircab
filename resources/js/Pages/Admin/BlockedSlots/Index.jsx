@@ -10,6 +10,7 @@ export default function Index({ blockedSlots, stats, filters }) {
     const safeStats = stats || { total: 0, this_month: 0, next_month: 0 };
     const safeFilters = filters || {};
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
 
@@ -30,6 +31,13 @@ export default function Index({ blockedSlots, stats, filters }) {
         recurring_until: '',
     });
 
+    const editForm = useForm({
+        date: '',
+        start_time: '',
+        end_time: '',
+        reason: '',
+    });
+
     const handleFilter = () => {
         filterForm.get(route('admin.blocked-slots.index'));
     };
@@ -48,6 +56,16 @@ export default function Index({ blockedSlots, stats, filters }) {
         });
     };
 
+    const handleEdit = () => {
+        editForm.put(route('admin.blocked-slots.update', selectedSlot.id), {
+            onSuccess: () => {
+                setShowEditModal(false);
+                setSelectedSlot(null);
+                editForm.reset();
+            },
+        });
+    };
+
     const handleDelete = () => {
         router.delete(route('admin.blocked-slots.destroy', selectedSlot.id), {
             onSuccess: () => {
@@ -55,6 +73,17 @@ export default function Index({ blockedSlots, stats, filters }) {
                 setSelectedSlot(null);
             },
         });
+    };
+
+    const openEditModal = (slot) => {
+        setSelectedSlot(slot);
+        editForm.setData({
+            date: slot.date,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            reason: slot.reason,
+        });
+        setShowEditModal(true);
     };
 
     const openDeleteModal = (slot) => {
@@ -228,15 +257,23 @@ export default function Index({ blockedSlots, stats, filters }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {slot.created_by_user?.name || 'Système'}
+                                                {slot.blocked_by?.name || 'Système'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button
-                                                    onClick={() => openDeleteModal(slot)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    Supprimer
-                                                </button>
+                                                <div className="flex space-x-3">
+                                                    <button
+                                                        onClick={() => openEditModal(slot)}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                    >
+                                                        Modifier
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openDeleteModal(slot)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        Supprimer
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -394,6 +431,78 @@ export default function Index({ blockedSlots, stats, filters }) {
                         </SecondaryButton>
                         <PrimaryButton onClick={handleCreate} disabled={createForm.processing}>
                             {createForm.processing ? 'Création...' : 'Créer'}
+                        </PrimaryButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal d'édition */}
+            <Modal show={showEditModal} onClose={() => setShowEditModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Modifier le créneau bloqué</h3>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input
+                                type="date"
+                                value={editForm.data.date}
+                                onChange={(e) => editForm.setData('date', e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                required
+                            />
+                            {editForm.errors.date && (
+                                <p className="text-red-500 text-sm mt-1">{editForm.errors.date}</p>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Heure de début</label>
+                                <input
+                                    type="time"
+                                    value={editForm.data.start_time}
+                                    onChange={(e) => editForm.setData('start_time', e.target.value)}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    required
+                                />
+                                {editForm.errors.start_time && (
+                                    <p className="text-red-500 text-sm mt-1">{editForm.errors.start_time}</p>
+                                )}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Heure de fin</label>
+                                <input
+                                    type="time"
+                                    value={editForm.data.end_time}
+                                    onChange={(e) => editForm.setData('end_time', e.target.value)}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    required
+                                />
+                                {editForm.errors.end_time && (
+                                    <p className="text-red-500 text-sm mt-1">{editForm.errors.end_time}</p>
+                                )}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Raison</label>
+                            <input
+                                type="text"
+                                value={editForm.data.reason}
+                                onChange={(e) => editForm.setData('reason', e.target.value)}
+                                placeholder="Ex: Réunion, Congé, etc."
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                required
+                            />
+                            {editForm.errors.reason && (
+                                <p className="text-red-500 text-sm mt-1">{editForm.errors.reason}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="mt-6 flex justify-end space-x-3">
+                        <SecondaryButton onClick={() => setShowEditModal(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <PrimaryButton onClick={handleEdit} disabled={editForm.processing}>
+                            {editForm.processing ? 'Modification...' : 'Modifier'}
                         </PrimaryButton>
                     </div>
                 </div>
