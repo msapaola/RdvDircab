@@ -207,6 +207,16 @@ class AppointmentController extends Controller
             'next_month' => BlockedSlot::whereMonth('date', now()->addMonth()->month)->count(),
         ];
 
+        // Debug logging
+        \Log::info('BlockedSlots Debug', [
+            'total_count' => $stats['total'],
+            'this_month_count' => $stats['this_month'],
+            'paginated_count' => $blockedSlots->count(),
+            'paginated_total' => $blockedSlots->total(),
+            'has_data' => $blockedSlots->count() > 0,
+            'first_item' => $blockedSlots->first(),
+        ]);
+
         return Inertia::render('Admin/BlockedSlots/Index', [
             'blockedSlots' => $blockedSlots->load('blockedBy'),
             'stats' => $stats,

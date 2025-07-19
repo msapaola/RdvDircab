@@ -77,9 +77,9 @@ export default function Index({ appointments, stats, filters }) {
             rejection_reason: rejectionReason,
         }, {
             onSuccess: () => {
-                setShowRejectModal(false);
-                setSelectedAppointment(null);
-                setRejectionReason('');
+        setShowRejectModal(false);
+        setSelectedAppointment(null);
+        setRejectionReason('');
             }
         });
     };
@@ -94,9 +94,9 @@ export default function Index({ appointments, stats, filters }) {
             admin_notes: cancelReason,
         }, {
             onSuccess: () => {
-                setShowCancelModal(false);
-                setSelectedAppointment(null);
-                setCancelReason('');
+        setShowCancelModal(false);
+        setSelectedAppointment(null);
+        setCancelReason('');
             }
         });
     };
@@ -282,10 +282,10 @@ export default function Index({ appointments, stats, filters }) {
                                     </label>
                                 </div>
                                 <SafeLink
-                                    href={route('admin.dashboard')}
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                >
-                                    ← Retour au tableau de bord
+                                href={route('admin.dashboard')}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                ← Retour au tableau de bord
                                 </SafeLink>
                             </div>
                         </div>
@@ -489,12 +489,12 @@ export default function Index({ appointments, stats, filters }) {
 
                     {/* Vue tableau */}
                     {viewMode === 'table' && (
-                        <div className="bg-white rounded-lg shadow overflow-hidden">
-                            <div className="px-6 py-4 border-b border-gray-200">
+                    <div className="bg-white rounded-lg shadow overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-lg font-semibold text-gray-900">
-                                        Rendez-vous ({appointments.total})
-                                    </h2>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Rendez-vous ({appointments.total})
+                            </h2>
                                     <div className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
@@ -505,12 +505,12 @@ export default function Index({ appointments, stats, filters }) {
                                         <span className="text-sm text-gray-600">Sélectionner tout</span>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 <input
                                                     type="checkbox"
@@ -519,28 +519,28 @@ export default function Index({ appointments, stats, filters }) {
                                                     className="rounded border-gray-300"
                                                 />
                                             </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Demandeur
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Objet
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date/Heure
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Priorité
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Statut
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {appointments.data.map((appointment) => (
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Demandeur
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Objet
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Date/Heure
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Priorité
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Statut
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {appointments.data.map((appointment) => (
                                             <tr key={appointment.id} className={`hover:bg-gray-50 ${
                                                 appointment.status === 'pending' ? 'bg-orange-50' : ''
                                             }`}>
@@ -552,47 +552,47 @@ export default function Index({ appointments, stats, filters }) {
                                                         className="rounded border-gray-300"
                                                     />
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div>
-                                                        <div className="text-sm font-medium text-gray-900">
-                                                            {appointment.name}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {appointment.email}
-                                                        </div>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {appointment.name}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {appointment.email}
+                                                    </div>
                                                         <div className="text-xs text-gray-400">
                                                             {appointment.phone}
                                                         </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                        {appointment.subject}
-                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-sm text-gray-900 max-w-xs truncate">
+                                                    {appointment.subject}
+                                                </div>
                                                     <div className="text-xs text-gray-500 mt-1">
                                                         Créé le {formatDate(appointment.created_at)}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-900">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">
                                                         {formatDate(appointment.preferred_date)}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
+                                                </div>
+                                                <div className="text-sm text-gray-500">
                                                         {formatTime(appointment.preferred_time)}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(appointment.priority).class}`}>
                                                         {getPriorityDisplay(appointment.priority).text}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusDisplay(appointment.status).class}`}>
                                                         {getStatusDisplay(appointment.status).text}
                                                     </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <div className="flex space-x-2">
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => openDetailsModal(appointment)}
                                                             className="text-blue-600 hover:text-blue-900 flex items-center"
@@ -611,24 +611,24 @@ export default function Index({ appointments, stats, filters }) {
                                                         >
                                                             ✏️ Modifier
                                                         </button>
-                                                        
-                                                        {appointment.status === 'pending' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => handleAccept(appointment)}
-                                                                    className="text-green-600 hover:text-green-900"
-                                                                >
+                                                    
+                                                    {appointment.status === 'pending' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleAccept(appointment)}
+                                                                className="text-green-600 hover:text-green-900"
+                                                            >
                                                                     ✅ Accepter
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => openRejectModal(appointment)}
-                                                                    className="text-red-600 hover:text-red-900"
-                                                                >
+                                                            </button>
+                                                            <button
+                                                                onClick={() => openRejectModal(appointment)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
                                                                     ❌ Refuser
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => openCancelModal(appointment)}
-                                                                    className="text-gray-600 hover:text-gray-900"
+                                                            </button>
+                                                            <button
+                                                                onClick={() => openCancelModal(appointment)}
+                                                                className="text-gray-600 hover:text-gray-900"
                                                                 >
                                                                     🚫 Annuler
                                                                 </button>
@@ -642,32 +642,32 @@ export default function Index({ appointments, stats, filters }) {
                                                             >
                                                                 ✅ Terminer
                                                             </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
                             {/* Pagination améliorée */}
-                            {appointments.links && (
-                                <div className="px-6 py-3 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-sm text-gray-700">
-                                            Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
-                                        </div>
-                                        <div className="flex space-x-2">
-                                            {appointments.links.map((link, index) => (
+                        {appointments.links && (
+                            <div className="px-6 py-3 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-gray-700">
+                                        Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        {appointments.links.map((link, index) => (
                                                 link.url ? (
                                                     <SafeLink
-                                                        key={index}
-                                                        href={link.url}
-                                                        className={`px-3 py-2 text-sm rounded-md ${
-                                                            link.active
-                                                                ? 'bg-blue-500 text-white'
-                                                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                key={index}
+                                                href={link.url}
+                                                className={`px-3 py-2 text-sm rounded-md ${
+                                                    link.active
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
                                                         }`}
                                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                                     />
@@ -679,7 +679,7 @@ export default function Index({ appointments, stats, filters }) {
                                                                 ? 'bg-blue-500 text-white'
                                                                 : 'bg-white text-gray-700'
                                                         }`}
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
                                                     />
                                                 )
                                             ))}
@@ -1076,7 +1076,7 @@ export default function Index({ appointments, stats, filters }) {
                                         <p className="text-red-600 text-xs mt-1">{editForm.errors.admin_notes}</p>
                                     )}
                                 </div>
-                            </div>
+            </div>
                             
                             <div className="mt-6 flex justify-end space-x-3">
                                 <SecondaryButton type="button" onClick={() => setShowEditModal(false)}>
