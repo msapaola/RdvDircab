@@ -140,6 +140,12 @@ export default function Index({ appointments, stats, filters }) {
     };
 
     const handleBulkAction = () => {
+        console.log('handleBulkAction called', {
+            bulkAction,
+            selectedAppointments,
+            bulkReason
+        });
+
         if (!bulkAction) {
             alert('Veuillez sélectionner une action.');
             return;
@@ -155,6 +161,15 @@ export default function Index({ appointments, stats, filters }) {
             return;
         }
 
+        console.log('Sending bulk action request', {
+            route: route('admin.appointments.bulk-action'),
+            data: {
+                appointment_ids: selectedAppointments,
+                action: bulkAction,
+                reason: bulkReason,
+            }
+        });
+
         // Utiliser Inertia pour les actions en lot
         router.post(route('admin.appointments.bulk-action'), {
             appointment_ids: selectedAppointments,
@@ -162,10 +177,15 @@ export default function Index({ appointments, stats, filters }) {
             reason: bulkReason,
         }, {
             onSuccess: () => {
+                console.log('Bulk action successful');
                 setShowBulkActionsModal(false);
                 setSelectedAppointments([]);
                 setBulkAction('');
                 setBulkReason('');
+            },
+            onError: (errors) => {
+                console.error('Bulk action failed', errors);
+                alert('Erreur lors de l\'exécution de l\'action en lot.');
             }
         });
     };
