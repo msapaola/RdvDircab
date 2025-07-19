@@ -93,6 +93,12 @@ export default function Login({ status, canResetPassword }) {
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Log in
                     </PrimaryButton>
+
+
+                </div>
+                <div className="mt-4">
+                    <label className="flex items-center">admin@gouvernorat-kinshasa.cd/Admin@2024!</label>
+                    <label className="flex items-center">assistant@gouvernorat-kinshasa.cd/Assistant@2024!</label>
                 </div>
             </form>
         </GuestLayout>
