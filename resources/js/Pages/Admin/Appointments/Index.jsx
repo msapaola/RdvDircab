@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
+import SafeLink from '@/Components/SafeLink';
 
 export default function Index({ appointments, stats, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
@@ -92,12 +93,12 @@ export default function Index({ appointments, stats, filters }) {
                                 <h1 className="text-3xl font-bold text-gray-900">Gestion des rendez-vous</h1>
                                 <p className="text-gray-600 mt-2">Liste et gestion de tous les rendez-vous</p>
                             </div>
-                            <Link
+                            <SafeLink
                                 href={route('admin.dashboard')}
                                 className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                             >
                                 ← Retour au tableau de bord
-                            </Link>
+                            </SafeLink>
                         </div>
                     </div>
                 </header>
@@ -303,12 +304,12 @@ export default function Index({ appointments, stats, filters }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-2">
-                                                    <Link
+                                                    <SafeLink
                                                         href={route('admin.appointments.show', appointment.id)}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
                                                         Voir
-                                                    </Link>
+                                                    </SafeLink>
                                                     
                                                     {appointment.status === 'pending' && (
                                                         <>
@@ -349,7 +350,7 @@ export default function Index({ appointments, stats, filters }) {
                                     </div>
                                     <div className="flex space-x-2">
                                         {appointments.links.map((link, index) => (
-                                            <Link
+                                            <SafeLink
                                                 key={index}
                                                 href={link.url}
                                                 className={`px-3 py-2 text-sm rounded-md ${
