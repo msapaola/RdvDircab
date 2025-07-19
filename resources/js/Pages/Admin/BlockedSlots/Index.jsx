@@ -9,6 +9,27 @@ export default function Index({ blockedSlots, stats, filters }) {
     const safeBlockedSlots = blockedSlots || { data: [], total: 0, from: 0, to: 0, links: [] };
     const safeStats = stats || { total: 0, this_month: 0, next_month: 0 };
     const safeFilters = filters || {};
+    
+    // Fonctions utilitaires (déclarées avant utilisation)
+    const formatTime = (time) => {
+        return time.substring(0, 5); // Afficher HH:MM
+    };
+
+    const formatDate = (date) => {
+        return new Date(date).toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
+
+    const formatDateForInput = (date) => {
+        if (!date) return '';
+        return new Date(date).toISOString().split('T')[0];
+    };
+    
+    // États
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -99,24 +120,6 @@ export default function Index({ blockedSlots, stats, filters }) {
     const openDeleteModal = (slot) => {
         setSelectedSlot(slot);
         setShowDeleteModal(true);
-    };
-
-    const formatTime = (time) => {
-        return time.substring(0, 5); // Afficher HH:MM
-    };
-
-    const formatDate = (date) => {
-        return new Date(date).toLocaleDateString('fr-FR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-    };
-
-    const formatDateForInput = (date) => {
-        if (!date) return '';
-        return new Date(date).toISOString().split('T')[0];
     };
 
     return (
