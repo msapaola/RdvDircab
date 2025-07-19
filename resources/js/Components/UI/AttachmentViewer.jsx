@@ -141,8 +141,8 @@ export default function AttachmentViewer({ attachments, appointmentId }) {
     };
 
     const openPreview = (attachment) => {
-        const downloadUrl = route('admin.appointments.attachments.download', [appointmentId, attachment.name]);
-        setPreviewUrl(downloadUrl);
+        const previewUrl = route('admin.appointments.attachments.preview', [appointmentId, attachment.name]);
+        setPreviewUrl(previewUrl);
         setPreviewFileName(attachment.name);
     };
 
@@ -262,12 +262,49 @@ export default function AttachmentViewer({ attachments, appointmentId }) {
                                                 e.target.nextSibling.style.display = 'block';
                                             }}
                                         />
-                                    ) : (
+                                    ) : /\.pdf$/i.test(previewFileName) ? (
+                                        <div className="relative">
+                                            <iframe
+                                                src={previewUrl}
+                                                className="w-full h-96 border-0"
+                                                title={previewFileName}
+                                                onError={(e) => {
+                                                    console.error('Erreur de chargement PDF:', e);
+                                                }}
+                                            />
+                                            <div className="absolute top-2 right-2">
+                                                <a
+                                                    href={route('admin.appointments.attachments.download', [appointmentId, previewFileName])}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                                    title="Télécharger"
+                                                >
+                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : /\.(txt|md|log|csv|json|xml|html|css|js)$/i.test(previewFileName) ? (
                                         <iframe
                                             src={previewUrl}
                                             className="w-full h-96 border-0"
                                             title={previewFileName}
                                         />
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <p className="mt-2 text-sm text-gray-500">
+                                                Prévisualisation non disponible pour ce type de fichier
+                                            </p>
+                                            <a
+                                                href={route('admin.appointments.attachments.download', [appointmentId, previewFileName])}
+                                                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                            >
+                                                Télécharger le fichier
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
                             </div>

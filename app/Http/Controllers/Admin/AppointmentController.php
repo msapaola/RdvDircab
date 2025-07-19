@@ -379,4 +379,56 @@ class AppointmentController extends Controller
         // Retourner le fichier pour téléchargement
         return response()->download($filePath, $attachment['name']);
     }
+
+    /**
+     * Preview an attachment from an appointment (for display in browser)
+     */
+    public function previewAttachment(Appointment $appointment, $filename)
+    {
+        // Vérifier que l'appointment a des pièces jointes
+        if (!$appointment->hasAttachments()) {
+            abort(404, 'Aucune pièce jointe trouvée.');
+        }
+
+        // Chercher le fichier dans les pièces jointes
+        $attachment = null;
+        foreach ($appointment->attachments as $att) {
+            if ($att['name'] === $filename) {
+                $attachment = $att;
+                break;
+            }
+        }
+
+        if (!$attachment) {
+            \Log::error('Fichier non trouvé dans les pièces jointes pour prévisualisation', [
+                'appointment_id' => $appointment->id,
+                'requested_filename' => $filename,
+                'available_attachments' => collect($appointment->attachments)->pluck('name')->toArray()
+            ]);
+            abort(404, 'Fichier non trouvé dans les pièces jointes.');
+        }
+
+        // Construire le chemin du fichier en utilisant le path stocké
+        $filePath = storage_path('app/public/' . $attachment['path']);
+
+        // Vérifier que le fichier existe
+        if (!file_exists($filePath)) {
+            \Log::error('Fichier non trouvé sur le serveur pour prévisualisation', [
+                'appointment_id' => $appointment->id,
+                'filename' => $filename,
+                'file_path' => $filePath,
+                'attachment_path' => $attachment['path']
+            ]);
+            abort(404, 'Fichier non trouvé sur le serveur.');
+        }
+
+        // Déterminer le type MIME
+        $mimeType = $attachment['type'] ?? mime_content_type($filePath);
+        
+        // Retourner le fichier pour prévisualisation (sans forcer le téléchargement)
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $attachment['name'] . '"'
+        ]);
+    }
 }
