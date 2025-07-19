@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router, useForm } from '@inertiajs/react';
 import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -10,9 +10,27 @@ import SafeLink from '@/Components/SafeLink';
 export default function Index({ appointments, stats, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showBulkActionsModal, setShowBulkActionsModal] = useState(false);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [selectedAppointments, setSelectedAppointments] = useState([]);
     const [rejectionReason, setRejectionReason] = useState('');
     const [cancelReason, setCancelReason] = useState('');
+    const [bulkAction, setBulkAction] = useState('');
+    const [bulkReason, setBulkReason] = useState('');
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
+    const [autoRefresh, setAutoRefresh] = useState(false);
+
+    // Auto-refresh every 30 seconds if enabled
+    useEffect(() => {
+        if (!autoRefresh) return;
+        
+        const interval = setInterval(() => {
+            router.reload({ only: ['appointments', 'stats'] });
+        }, 30000);
+        
+        return () => clearInterval(interval);
+    }, [autoRefresh]);
 
     const filterForm = useForm({
         status: filters.status || '',
@@ -22,6 +40,7 @@ export default function Index({ appointments, stats, filters }) {
         search: filters.search || '',
         sort_by: filters.sort_by || 'created_at',
         sort_order: filters.sort_order || 'desc',
+        per_page: filters.per_page || 20,
     });
 
     const handleFilter = () => {
@@ -41,11 +60,13 @@ export default function Index({ appointments, stats, filters }) {
 
         router.post(route('admin.appointments.reject', selectedAppointment.id), {
             rejection_reason: rejectionReason,
+        }, {
+            onSuccess: () => {
+                setShowRejectModal(false);
+                setSelectedAppointment(null);
+                setRejectionReason('');
+            }
         });
-
-        setShowRejectModal(false);
-        setSelectedAppointment(null);
-        setRejectionReason('');
     };
 
     const handleCancel = () => {
@@ -56,16 +77,79 @@ export default function Index({ appointments, stats, filters }) {
 
         router.post(route('admin.appointments.cancel', selectedAppointment.id), {
             admin_notes: cancelReason,
+        }, {
+            onSuccess: () => {
+                setShowCancelModal(false);
+                setSelectedAppointment(null);
+                setCancelReason('');
+            }
         });
-
-        setShowCancelModal(false);
-        setSelectedAppointment(null);
-        setCancelReason('');
     };
 
     const handleAccept = (appointment) => {
         if (confirm('Êtes-vous sûr de vouloir accepter ce rendez-vous ?')) {
             router.post(route('admin.appointments.accept', appointment.id));
+        }
+    };
+
+    const handleComplete = (appointment) => {
+        if (confirm('Marquer ce rendez-vous comme terminé ?')) {
+            router.post(route('admin.appointments.complete', appointment.id));
+        }
+    };
+
+    const handleBulkAction = () => {
+        if (!bulkAction) {
+            alert('Veuillez sélectionner une action.');
+            return;
+        }
+
+        if (selectedAppointments.length === 0) {
+            alert('Veuillez sélectionner au moins un rendez-vous.');
+            return;
+        }
+
+        if ((bulkAction === 'reject' || bulkAction === 'cancel') && !bulkReason.trim()) {
+            alert('Veuillez indiquer une raison.');
+            return;
+        }
+
+        const promises = selectedAppointments.map(appointmentId => {
+            const data = bulkAction === 'reject' ? { rejection_reason: bulkReason } :
+                        bulkAction === 'cancel' ? { admin_notes: bulkReason } : {};
+            
+            return fetch(route(`admin.appointments.${bulkAction}`, appointmentId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(data)
+            });
+        });
+
+        Promise.all(promises).then(() => {
+            setShowBulkActionsModal(false);
+            setSelectedAppointments([]);
+            setBulkAction('');
+            setBulkReason('');
+            router.reload({ only: ['appointments', 'stats'] });
+        });
+    };
+
+    const toggleAppointmentSelection = (appointmentId) => {
+        setSelectedAppointments(prev => 
+            prev.includes(appointmentId) 
+                ? prev.filter(id => id !== appointmentId)
+                : [...prev, appointmentId]
+        );
+    };
+
+    const toggleAllAppointments = () => {
+        if (selectedAppointments.length === appointments.data.length) {
+            setSelectedAppointments([]);
+        } else {
+            setSelectedAppointments(appointments.data.map(app => app.id));
         }
     };
 
@@ -77,6 +161,43 @@ export default function Index({ appointments, stats, filters }) {
     const openCancelModal = (appointment) => {
         setSelectedAppointment(appointment);
         setShowCancelModal(true);
+    };
+
+    const openDetailsModal = (appointment) => {
+        setSelectedAppointment(appointment);
+        setShowDetailsModal(true);
+    };
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'urgent': return 'text-red-600 bg-red-100';
+            case 'official': return 'text-blue-600 bg-blue-100';
+            default: return 'text-gray-600 bg-gray-100';
+        }
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'pending': return 'text-orange-600 bg-orange-100';
+            case 'accepted': return 'text-green-600 bg-green-100';
+            case 'rejected': return 'text-red-600 bg-red-100';
+            case 'canceled':
+            case 'canceled_by_requester': return 'text-gray-600 bg-gray-100';
+            case 'completed': return 'text-blue-600 bg-blue-100';
+            default: return 'text-gray-600 bg-gray-100';
+        }
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    const formatTime = (timeString) => {
+        return timeString;
     };
 
     return (
@@ -91,51 +212,120 @@ export default function Index({ appointments, stats, filters }) {
                         <div className="flex justify-between items-center">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900">Gestion des rendez-vous</h1>
-                                <p className="text-gray-600 mt-2">Liste et gestion de tous les rendez-vous</p>
+                                <p className="text-gray-600 mt-2">Outil de gestion efficace des demandes de rendez-vous</p>
                             </div>
-                            <SafeLink
-                                href={route('admin.dashboard')}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                                ← Retour au tableau de bord
-                            </SafeLink>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="autoRefresh"
+                                        checked={autoRefresh}
+                                        onChange={(e) => setAutoRefresh(e.target.checked)}
+                                        className="rounded border-gray-300"
+                                    />
+                                    <label htmlFor="autoRefresh" className="text-sm text-gray-600">
+                                        Auto-refresh
+                                    </label>
+                                </div>
+                                <SafeLink
+                                    href={route('admin.dashboard')}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                    ← Retour au tableau de bord
+                                </SafeLink>
+                            </div>
                         </div>
                     </div>
                 </header>
 
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Statistiques rapides */}
+                    {/* Statistiques rapides avec indicateurs visuels */}
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-gray-400">
+                            <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
                             <div className="text-sm text-gray-600">Total</div>
                         </div>
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-orange-500">{stats.pending}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-orange-400">
+                            <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
                             <div className="text-sm text-gray-600">En attente</div>
+                            {stats.pending > 0 && (
+                                <div className="text-xs text-orange-600 mt-1">⚠️ Action requise</div>
+                            )}
                         </div>
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-green-500">{stats.accepted}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-green-400">
+                            <div className="text-2xl font-bold text-green-500">{stats.accepted}</div>
                             <div className="text-sm text-gray-600">Acceptés</div>
                         </div>
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-red-500">{stats.rejected}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-red-400">
+                            <div className="text-2xl font-bold text-red-500">{stats.rejected}</div>
                             <div className="text-sm text-gray-600">Refusés</div>
                         </div>
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-gray-400">{stats.canceled}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-gray-300">
+                            <div className="text-2xl font-bold text-gray-400">{stats.canceled}</div>
                             <div className="text-sm text-gray-600">Annulés</div>
                         </div>
-                        <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-blue-500">{stats.completed}</div>
+                        <div className="bg-white rounded-lg shadow p-4 text-center border-l-4 border-blue-400">
+                            <div className="text-2xl font-bold text-blue-500">{stats.completed}</div>
                             <div className="text-sm text-gray-600">Terminés</div>
                         </div>
                     </div>
 
-                    {/* Filtres */}
+                    {/* Actions en lot */}
+                    {selectedAppointments.length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <span className="text-blue-800 font-medium">
+                                        {selectedAppointments.length} rendez-vous sélectionné(s)
+                                    </span>
+                                    <button
+                                        onClick={() => setShowBulkActionsModal(true)}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                                    >
+                                        Actions en lot
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedAppointments([])}
+                                    className="text-blue-600 hover:text-blue-800 text-sm"
+                                >
+                                    Annuler la sélection
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Filtres avancés */}
                     <div className="bg-white rounded-lg shadow p-6 mb-8">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Filtres</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-900">Filtres et recherche</h2>
+                            <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={() => setViewMode('table')}
+                                        className={`px-3 py-1 rounded-md text-sm font-medium ${
+                                            viewMode === 'table' 
+                                                ? 'bg-blue-100 text-blue-700' 
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Tableau
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('cards')}
+                                        className={`px-3 py-1 rounded-md text-sm font-medium ${
+                                            viewMode === 'cards' 
+                                                ? 'bg-blue-100 text-blue-700' 
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Cartes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                                 <select
@@ -176,7 +366,21 @@ export default function Index({ appointments, stats, filters }) {
                                     className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Par page</label>
+                                <select
+                                    value={filterForm.data.per_page}
+                                    onChange={(e) => filterForm.setData('per_page', e.target.value)}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                >
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
                         </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
@@ -213,168 +417,374 @@ export default function Index({ appointments, stats, filters }) {
                                     <option value="preferred_date-desc">Date RDV (décroissant)</option>
                                     <option value="name-asc">Nom (A-Z)</option>
                                     <option value="name-desc">Nom (Z-A)</option>
+                                    <option value="priority-desc">Priorité (haute → basse)</option>
+                                    <option value="priority-asc">Priorité (basse → haute)</option>
                                 </select>
                             </div>
                         </div>
+                        
                         <div className="flex space-x-3">
                             <PrimaryButton onClick={handleFilter}>
-                                Appliquer les filtres
+                                🔍 Appliquer les filtres
                             </PrimaryButton>
                             <SecondaryButton onClick={handleReset}>
-                                Réinitialiser
+                                🔄 Réinitialiser
                             </SecondaryButton>
                         </div>
                     </div>
 
-                    {/* Liste des rendez-vous */}
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Rendez-vous ({appointments.total})
-                            </h2>
-                        </div>
-                        
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Demandeur
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Objet
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Date/Heure
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Priorité
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Statut
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {appointments.data.map((appointment) => (
-                                        <tr key={appointment.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {appointment.name}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        {appointment.email}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                    {appointment.subject}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
-                                                    {appointment.preferred_date}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {appointment.preferred_time}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <StatusBadge 
-                                                    status={appointment.formatted_priority}
-                                                    color={appointment.priority === 'urgent' ? 'red' : appointment.priority === 'official' ? 'blue' : 'gray'}
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <StatusBadge 
-                                                    status={appointment.formatted_status}
-                                                    color={
-                                                        appointment.status === 'pending' ? 'orange' :
-                                                        appointment.status === 'accepted' ? 'green' :
-                                                        appointment.status === 'rejected' ? 'red' :
-                                                        appointment.status === 'canceled' || appointment.status === 'canceled_by_requester' ? 'gray' :
-                                                        appointment.status === 'completed' ? 'blue' : 'gray'
-                                                    }
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <div className="flex space-x-2">
-                                                    <SafeLink
-                                                        href={route('admin.appointments.show', appointment.id)}
-                                                        className="text-blue-600 hover:text-blue-900"
-                                                    >
-                                                        Voir
-                                                    </SafeLink>
-                                                    
-                                                    {appointment.status === 'pending' && (
-                                                        <>
-                                                            <button
-                                                                onClick={() => handleAccept(appointment)}
-                                                                className="text-green-600 hover:text-green-900"
-                                                            >
-                                                                Accepter
-                                                            </button>
-                                                            <button
-                                                                onClick={() => openRejectModal(appointment)}
-                                                                className="text-red-600 hover:text-red-900"
-                                                            >
-                                                                Refuser
-                                                            </button>
-                                                            <button
-                                                                onClick={() => openCancelModal(appointment)}
-                                                                className="text-gray-600 hover:text-gray-900"
-                                                            >
-                                                                Annuler
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination */}
-                        {appointments.links && (
-                            <div className="px-6 py-3 border-t border-gray-200">
+                    {/* Vue tableau */}
+                    {viewMode === 'table' && (
+                        <div className="bg-white rounded-lg shadow overflow-hidden">
+                            <div className="px-6 py-4 border-b border-gray-200">
                                 <div className="flex items-center justify-between">
-                                    <div className="text-sm text-gray-700">
-                                        Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        {appointments.links.map((link, index) => (
-                                            <SafeLink
-                                                key={index}
-                                                href={link.url}
-                                                className={`px-3 py-2 text-sm rounded-md ${
-                                                    link.active
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Rendez-vous ({appointments.total})
+                                    </h2>
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedAppointments.length === appointments.data.length && appointments.data.length > 0}
+                                            onChange={toggleAllAppointments}
+                                            className="rounded border-gray-300"
+                                        />
+                                        <span className="text-sm text-gray-600">Sélectionner tout</span>
                                     </div>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                            
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedAppointments.length === appointments.data.length && appointments.data.length > 0}
+                                                    onChange={toggleAllAppointments}
+                                                    className="rounded border-gray-300"
+                                                />
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Demandeur
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Objet
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Date/Heure
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Priorité
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Statut
+                                            </th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {appointments.data.map((appointment) => (
+                                            <tr key={appointment.id} className={`hover:bg-gray-50 ${
+                                                appointment.status === 'pending' ? 'bg-orange-50' : ''
+                                            }`}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedAppointments.includes(appointment.id)}
+                                                        onChange={() => toggleAppointmentSelection(appointment.id)}
+                                                        className="rounded border-gray-300"
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {appointment.name}
+                                                        </div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {appointment.email}
+                                                        </div>
+                                                        <div className="text-xs text-gray-400">
+                                                            {appointment.phone}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="text-sm text-gray-900 max-w-xs truncate">
+                                                        {appointment.subject}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        Créé le {formatDate(appointment.created_at)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-sm text-gray-900">
+                                                        {formatDate(appointment.preferred_date)}
+                                                    </div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {formatTime(appointment.preferred_time)}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(appointment.priority)}`}>
+                                                        {appointment.formatted_priority}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
+                                                        {appointment.formatted_status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <div className="flex space-x-2">
+                                                        <button
+                                                            onClick={() => openDetailsModal(appointment)}
+                                                            className="text-blue-600 hover:text-blue-900"
+                                                        >
+                                                            👁️ Voir
+                                                        </button>
+                                                        
+                                                        {appointment.status === 'pending' && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleAccept(appointment)}
+                                                                    className="text-green-600 hover:text-green-900"
+                                                                >
+                                                                    ✅ Accepter
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => openRejectModal(appointment)}
+                                                                    className="text-red-600 hover:text-red-900"
+                                                                >
+                                                                    ❌ Refuser
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => openCancelModal(appointment)}
+                                                                    className="text-gray-600 hover:text-gray-900"
+                                                                >
+                                                                    🚫 Annuler
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        
+                                                        {appointment.status === 'accepted' && (
+                                                            <button
+                                                                onClick={() => handleComplete(appointment)}
+                                                                className="text-blue-600 hover:text-blue-900"
+                                                            >
+                                                                ✅ Terminer
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination améliorée */}
+                            {appointments.links && (
+                                <div className="px-6 py-3 border-t border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-sm text-gray-700">
+                                            Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            {appointments.links.map((link, index) => (
+                                                <SafeLink
+                                                    key={index}
+                                                    href={link.url}
+                                                    className={`px-3 py-2 text-sm rounded-md ${
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                    } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Vue cartes */}
+                    {viewMode === 'cards' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {appointments.data.map((appointment) => (
+                                <div key={appointment.id} className={`bg-white rounded-lg shadow-md border-l-4 ${
+                                    appointment.status === 'pending' ? 'border-orange-400' :
+                                    appointment.status === 'accepted' ? 'border-green-400' :
+                                    appointment.status === 'rejected' ? 'border-red-400' :
+                                    appointment.status === 'completed' ? 'border-blue-400' :
+                                    'border-gray-400'
+                                }`}>
+                                    <div className="p-6">
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900">
+                                                    {appointment.name}
+                                                </h3>
+                                                <p className="text-sm text-gray-600">{appointment.email}</p>
+                                                <p className="text-xs text-gray-500">{appointment.phone}</p>
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedAppointments.includes(appointment.id)}
+                                                onChange={() => toggleAppointmentSelection(appointment.id)}
+                                                className="rounded border-gray-300"
+                                            />
+                                        </div>
+                                        
+                                        <div className="mb-4">
+                                            <p className="text-sm text-gray-900 font-medium mb-2">
+                                                {appointment.subject}
+                                            </p>
+                                            <p className="text-xs text-gray-600">
+                                                {appointment.message && appointment.message.substring(0, 100)}...
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <p className="text-xs text-gray-500">Date</p>
+                                                <p className="text-sm font-medium">{formatDate(appointment.preferred_date)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500">Heure</p>
+                                                <p className="text-sm font-medium">{formatTime(appointment.preferred_time)}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(appointment.priority)}`}>
+                                                {appointment.formatted_priority}
+                                            </span>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
+                                                {appointment.formatted_status}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => openDetailsModal(appointment)}
+                                                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                                            >
+                                                👁️ Détails
+                                            </button>
+                                            
+                                            {appointment.status === 'pending' && (
+                                                <div className="flex space-x-1">
+                                                    <button
+                                                        onClick={() => handleAccept(appointment)}
+                                                        className="bg-green-600 text-white px-2 py-2 rounded-md text-sm hover:bg-green-700"
+                                                        title="Accepter"
+                                                    >
+                                                        ✅
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openRejectModal(appointment)}
+                                                        className="bg-red-600 text-white px-2 py-2 rounded-md text-sm hover:bg-red-700"
+                                                        title="Refuser"
+                                                    >
+                                                        ❌
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </main>
             </div>
+
+            {/* Modal de détails */}
+            <Modal show={showDetailsModal} onClose={() => setShowDetailsModal(false)} maxWidth="2xl">
+                {selectedAppointment && (
+                    <div className="p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">
+                            Détails du rendez-vous - {selectedAppointment.name}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-2">Informations du demandeur</h4>
+                                <div className="space-y-2 text-sm">
+                                    <p><span className="font-medium">Nom :</span> {selectedAppointment.name}</p>
+                                    <p><span className="font-medium">Email :</span> {selectedAppointment.email}</p>
+                                    <p><span className="font-medium">Téléphone :</span> {selectedAppointment.phone}</p>
+                                    <p><span className="font-medium">Date de création :</span> {formatDate(selectedAppointment.created_at)}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-2">Détails du rendez-vous</h4>
+                                <div className="space-y-2 text-sm">
+                                    <p><span className="font-medium">Objet :</span> {selectedAppointment.subject}</p>
+                                    <p><span className="font-medium">Date souhaitée :</span> {formatDate(selectedAppointment.preferred_date)}</p>
+                                    <p><span className="font-medium">Heure souhaitée :</span> {formatTime(selectedAppointment.preferred_time)}</p>
+                                    <p><span className="font-medium">Priorité :</span> 
+                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(selectedAppointment.priority)}`}>
+                                            {selectedAppointment.formatted_priority}
+                                        </span>
+                                    </p>
+                                    <p><span className="font-medium">Statut :</span> 
+                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedAppointment.status)}`}>
+                                            {selectedAppointment.formatted_status}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {selectedAppointment.message && (
+                            <div className="mt-6">
+                                <h4 className="font-medium text-gray-900 mb-2">Message du demandeur</h4>
+                                <div className="bg-gray-50 p-4 rounded-md">
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedAppointment.message}</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {selectedAppointment.rejection_reason && (
+                            <div className="mt-6">
+                                <h4 className="font-medium text-red-900 mb-2">Raison du refus</h4>
+                                <div className="bg-red-50 p-4 rounded-md">
+                                    <p className="text-sm text-red-700">{selectedAppointment.rejection_reason}</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {selectedAppointment.admin_notes && (
+                            <div className="mt-6">
+                                <h4 className="font-medium text-gray-900 mb-2">Notes administratives</h4>
+                                <div className="bg-blue-50 p-4 rounded-md">
+                                    <p className="text-sm text-blue-700">{selectedAppointment.admin_notes}</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="mt-6 flex justify-end space-x-3">
+                            <SecondaryButton onClick={() => setShowDetailsModal(false)}>
+                                Fermer
+                            </SecondaryButton>
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Modal de refus */}
             <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} maxWidth="md">
                 <div className="p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Refuser le rendez-vous</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                        Veuillez indiquer la raison du refus pour le rendez-vous de {selectedAppointment?.name}.
+                        Veuillez indiquer la raison du refus pour le rendez-vous de <strong>{selectedAppointment?.name}</strong>.
                     </p>
                     <textarea
                         value={rejectionReason}
@@ -399,7 +809,7 @@ export default function Index({ appointments, stats, filters }) {
                 <div className="p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Annuler le rendez-vous</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                        Veuillez indiquer la raison de l'annulation pour le rendez-vous de {selectedAppointment?.name}.
+                        Veuillez indiquer la raison de l'annulation pour le rendez-vous de <strong>{selectedAppointment?.name}</strong>.
                     </p>
                     <textarea
                         value={cancelReason}
@@ -414,6 +824,56 @@ export default function Index({ appointments, stats, filters }) {
                         </SecondaryButton>
                         <PrimaryButton onClick={handleCancel}>
                             Confirmer l'annulation
+                        </PrimaryButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal d'actions en lot */}
+            <Modal show={showBulkActionsModal} onClose={() => setShowBulkActionsModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Actions en lot ({selectedAppointments.length} rendez-vous)
+                    </h3>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Action à effectuer</label>
+                            <select
+                                value={bulkAction}
+                                onChange={(e) => setBulkAction(e.target.value)}
+                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            >
+                                <option value="">Sélectionner une action</option>
+                                <option value="accept">Accepter</option>
+                                <option value="reject">Refuser</option>
+                                <option value="cancel">Annuler</option>
+                                <option value="complete">Marquer comme terminé</option>
+                            </select>
+                        </div>
+                        
+                        {(bulkAction === 'reject' || bulkAction === 'cancel') && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    {bulkAction === 'reject' ? 'Raison du refus' : 'Raison de l\'annulation'}
+                                </label>
+                                <textarea
+                                    value={bulkReason}
+                                    onChange={(e) => setBulkReason(e.target.value)}
+                                    placeholder={`Raison du ${bulkAction === 'reject' ? 'refus' : 'annulation'}...`}
+                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    rows="3"
+                                />
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="mt-6 flex justify-end space-x-3">
+                        <SecondaryButton onClick={() => setShowBulkActionsModal(false)}>
+                            Annuler
+                        </SecondaryButton>
+                        <PrimaryButton onClick={handleBulkAction}>
+                            Exécuter l'action
                         </PrimaryButton>
                     </div>
                 </div>
