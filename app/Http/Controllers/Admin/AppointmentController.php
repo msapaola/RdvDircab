@@ -207,13 +207,8 @@ class AppointmentController extends Controller
             'next_month' => BlockedSlot::whereMonth('date', now()->addMonth()->month)->count(),
         ];
 
-
-
-        // Charger les relations et convertir en array pour s'assurer que les données sont transmises
-        $blockedSlotsWithRelations = $blockedSlots->load('blockedBy');
-        
         return Inertia::render('Admin/BlockedSlots/Index', [
-            'blockedSlots' => $blockedSlotsWithRelations->toArray(),
+            'blockedSlots' => $blockedSlots,
             'stats' => $stats,
             'filters' => $request->only(['date_from', 'date_to', 'reason', 'sort_by', 'sort_order']),
         ]);
@@ -235,7 +230,7 @@ class AppointmentController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'reason' => $request->reason,
-            'blocked_by' => auth()->id(),
+            'created_by' => auth()->id(),
         ]);
 
         // Gérer la récurrence si activée
@@ -249,7 +244,7 @@ class AppointmentController extends Controller
                     'start_time' => $request->start_time,
                     'end_time' => $request->end_time,
                     'reason' => $request->reason . ' (récurrent)',
-                    'blocked_by' => auth()->id(),
+                    'created_by' => auth()->id(),
                 ]);
             }
         }
@@ -260,41 +255,6 @@ class AppointmentController extends Controller
             ->log('Créneau bloqué créé');
 
         return redirect()->back()->with('success', 'Créneau bloqué créé avec succès.');
-    }
-
-    public function updateBlockedSlot(Request $request, BlockedSlot $blockedSlot)
-    {
-        $request->validate([
-            'date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'reason' => 'required|string|max:255',
-        ]);
-
-        $oldData = [
-            'date' => $blockedSlot->date,
-            'start_time' => $blockedSlot->start_time,
-            'end_time' => $blockedSlot->end_time,
-            'reason' => $blockedSlot->reason,
-        ];
-
-        $blockedSlot->update([
-            'date' => $request->date,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'reason' => $request->reason,
-        ]);
-
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($blockedSlot)
-            ->withProperties([
-                'old' => $oldData,
-                'new' => $request->only(['date', 'start_time', 'end_time', 'reason'])
-            ])
-            ->log('Créneau bloqué modifié');
-
-        return redirect()->back()->with('success', 'Créneau bloqué modifié avec succès.');
     }
 
     public function destroyBlockedSlot(BlockedSlot $blockedSlot)
