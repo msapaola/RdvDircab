@@ -6,6 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 import SafeLink from '@/Components/SafeLink';
+import AttachmentViewer from '@/Components/UI/AttachmentViewer';
 
 export default function Index({ appointments, stats, filters }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
@@ -594,9 +595,14 @@ export default function Index({ appointments, stats, filters }) {
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => openDetailsModal(appointment)}
-                                                            className="text-blue-600 hover:text-blue-900"
+                                                            className="text-blue-600 hover:text-blue-900 flex items-center"
                                                         >
                                                             👁️ Voir
+                                                            {appointment.attachments && appointment.attachments.length > 0 && (
+                                                                <span className="ml-1 text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+                                                                    📎 {appointment.attachments.length}
+                                                                </span>
+                                                            )}
                                                         </button>
                                                         
                                                         <button
@@ -713,9 +719,16 @@ export default function Index({ appointments, stats, filters }) {
                                         </div>
                                         
                                         <div className="mb-4">
-                                            <p className="text-sm text-gray-900 font-medium mb-2">
-                                                {appointment.subject}
-                                            </p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-sm text-gray-900 font-medium">
+                                                    {appointment.subject}
+                                                </p>
+                                                {appointment.attachments && appointment.attachments.length > 0 && (
+                                                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                                        📎 {appointment.attachments.length} fichier(s)
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-gray-600">
                                                 {appointment.message && appointment.message.substring(0, 100)}...
                                             </p>
@@ -744,9 +757,14 @@ export default function Index({ appointments, stats, filters }) {
                                         <div className="flex space-x-2">
                                             <button
                                                 onClick={() => openDetailsModal(appointment)}
-                                                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                                                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 flex items-center justify-center"
                                             >
                                                 👁️ Détails
+                                                {appointment.attachments && appointment.attachments.length > 0 && (
+                                                    <span className="ml-1 text-xs bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded-full">
+                                                        📎 {appointment.attachments.length}
+                                                    </span>
+                                                )}
                                             </button>
                                             
                                             <button
@@ -846,6 +864,17 @@ export default function Index({ appointments, stats, filters }) {
                                 <div className="bg-blue-50 p-4 rounded-md">
                                     <p className="text-sm text-blue-700">{selectedAppointment.admin_notes}</p>
                                 </div>
+                            </div>
+                        )}
+                        
+                        {/* Pièces jointes */}
+                        {selectedAppointment.attachments && selectedAppointment.attachments.length > 0 && (
+                            <div className="mt-6">
+                                <h4 className="font-medium text-gray-900 mb-2">Pièces jointes</h4>
+                                <AttachmentViewer 
+                                    attachments={selectedAppointment.attachments} 
+                                    appointmentId={selectedAppointment.id} 
+                                />
                             </div>
                         )}
                         
