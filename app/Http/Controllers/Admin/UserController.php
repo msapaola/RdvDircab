@@ -54,8 +54,41 @@ class UserController extends Controller
             'unverified' => User::whereNull('email_verified_at')->count(),
         ];
 
+        // S'assurer que les données de pagination sont correctes
+        $usersData = $users->toArray();
+        
+        // Vérifier et nettoyer les données des utilisateurs
+        if (isset($usersData['data']) && is_array($usersData['data'])) {
+            foreach ($usersData['data'] as &$user) {
+                $user['id'] = $user['id'] ?? 0;
+                $user['name'] = $user['name'] ?? '';
+                $user['email'] = $user['email'] ?? '';
+                $user['role'] = $user['role'] ?? 'assistant';
+                $user['email_verified_at'] = $user['email_verified_at'] ?? null;
+                $user['created_at'] = $user['created_at'] ?? now()->toDateString();
+            }
+        }
+        
+        // S'assurer que toutes les propriétés de pagination sont présentes
+        $usersData['current_page'] = $usersData['current_page'] ?? 1;
+        $usersData['last_page'] = $usersData['last_page'] ?? 1;
+        $usersData['per_page'] = $usersData['per_page'] ?? 15;
+        $usersData['total'] = $usersData['total'] ?? 0;
+        $usersData['from'] = $usersData['from'] ?? 0;
+        $usersData['to'] = $usersData['to'] ?? 0;
+        $usersData['links'] = $usersData['links'] ?? [];
+        
+        // S'assurer que les liens de pagination sont correctement formatés
+        if (is_array($usersData['links'])) {
+            foreach ($usersData['links'] as &$link) {
+                $link['url'] = $link['url'] ?? null;
+                $link['label'] = $link['label'] ?? '';
+                $link['active'] = $link['active'] ?? false;
+            }
+        }
+
         return Inertia::render('Admin/Users/Index', [
-            'users' => $users,
+            'users' => $usersData,
             'stats' => $stats,
             'filters' => $request->only(['role', 'search', 'status', 'sort_by', 'sort_order']),
             'auth' => [

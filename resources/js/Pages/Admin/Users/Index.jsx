@@ -23,6 +23,14 @@ export default function Index({ users, stats, filters, auth }) {
         safeUsers.data = [];
     }
     
+    // Vérification supplémentaire pour les propriétés de pagination
+    safeUsers.current_page = safeUsers.current_page || 1;
+    safeUsers.last_page = safeUsers.last_page || 1;
+    safeUsers.per_page = safeUsers.per_page || 15;
+    safeUsers.total = safeUsers.total || 0;
+    safeUsers.from = safeUsers.from || 0;
+    safeUsers.to = safeUsers.to || 0;
+    
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -359,18 +367,27 @@ export default function Index({ users, stats, filters, auth }) {
                                         Affichage de {safeUsers.from} à {safeUsers.to} sur {safeUsers.total} résultats
                                     </div>
                                     <div className="flex space-x-2">
-                                        {safeUsers.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url}
-                                                className={`px-3 py-2 text-sm rounded-md ${
-                                                    link.active
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
-                                        ))}
+                                        {safeUsers.links.map((link, index) => {
+                                            // Vérification défensive pour chaque lien
+                                            const safeLink = {
+                                                url: link?.url || null,
+                                                label: link?.label || '',
+                                                active: link?.active || false,
+                                            };
+                                            
+                                            return (
+                                                <Link
+                                                    key={index}
+                                                    href={safeLink.url}
+                                                    className={`px-3 py-2 text-sm rounded-md ${
+                                                        safeLink.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                    } ${!safeLink.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    dangerouslySetInnerHTML={{ __html: safeLink.label }}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
