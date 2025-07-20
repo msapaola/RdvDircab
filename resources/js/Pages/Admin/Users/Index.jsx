@@ -7,17 +7,23 @@ import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 
 export default function Index({ users, stats, filters, auth }) {
+    // Vérification défensive des données
+    const safeUsers = users || { data: [], total: 0, links: [] };
+    const safeStats = stats || { total: 0, admins: 0, assistants: 0, verified: 0, unverified: 0 };
+    const safeFilters = filters || {};
+    const safeAuth = auth || { user: null };
+    
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
 
     const filterForm = useForm({
-        role: filters.role || '',
-        search: filters.search || '',
-        status: filters.status || '',
-        sort_by: filters.sort_by || 'created_at',
-        sort_order: filters.sort_order || 'desc',
+        role: safeFilters.role || '',
+        search: safeFilters.search || '',
+        status: safeFilters.status || '',
+        sort_by: safeFilters.sort_by || 'created_at',
+        sort_order: safeFilters.sort_order || 'desc',
     });
 
     const createForm = useForm({
@@ -137,23 +143,23 @@ export default function Index({ users, stats, filters, auth }) {
                     {/* Statistiques rapides */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+                            <div className="text-xl font-bold text-gray-900">{safeStats.total}</div>
                             <div className="text-sm text-gray-600">Total</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-red-500">{stats.admins}</div>
+                            <div className="text-xl font-bold text-red-500">{safeStats.admins}</div>
                             <div className="text-sm text-gray-600">Administrateurs</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-blue-500">{stats.assistants}</div>
+                            <div className="text-xl font-bold text-blue-500">{safeStats.assistants}</div>
                             <div className="text-sm text-gray-600">Assistants</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-green-500">{stats.verified}</div>
+                            <div className="text-xl font-bold text-green-500">{safeStats.verified}</div>
                             <div className="text-sm text-gray-600">Actifs</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-gray-400">{stats.unverified}</div>
+                            <div className="text-xl font-bold text-gray-400">{safeStats.unverified}</div>
                             <div className="text-sm text-gray-600">Inactifs</div>
                         </div>
                     </div>
@@ -230,7 +236,7 @@ export default function Index({ users, stats, filters, auth }) {
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h2 className="text-lg font-semibold text-gray-900">
-                                Utilisateurs ({users.total})
+                                Utilisateurs ({safeUsers.total})
                             </h2>
                         </div>
                         
@@ -256,7 +262,7 @@ export default function Index({ users, stats, filters, auth }) {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {users.data.map((user) => (
+                                    {safeUsers.data && safeUsers.data.map((user) => (
                                         <tr key={user.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div>
@@ -307,7 +313,7 @@ export default function Index({ users, stats, filters, auth }) {
                                                     >
                                                         {user.email_verified_at ? 'Désactiver' : 'Activer'}
                                                     </button>
-                                                    {user.id !== auth?.user?.id && (
+                                                    {user.id !== safeAuth?.user?.id && (
                                                         <button
                                                             onClick={() => openDeleteModal(user)}
                                                             className="text-red-600 hover:text-red-900"
@@ -324,14 +330,14 @@ export default function Index({ users, stats, filters, auth }) {
                         </div>
 
                         {/* Pagination */}
-                        {users.links && (
+                        {safeUsers.links && safeUsers.links.length > 0 && (
                             <div className="px-6 py-3 border-t border-gray-200">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm text-gray-700">
-                                        Affichage de {users.from} à {users.to} sur {users.total} résultats
+                                        Affichage de {safeUsers.from} à {safeUsers.to} sur {safeUsers.total} résultats
                                     </div>
                                     <div className="flex space-x-2">
-                                        {users.links.map((link, index) => (
+                                        {safeUsers.links.map((link, index) => (
                                             <Link
                                                 key={index}
                                                 href={link.url}

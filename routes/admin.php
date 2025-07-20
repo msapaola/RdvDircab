@@ -61,8 +61,6 @@ Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admi
         Route::put('/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
         Route::post('/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('/{user}/change-role', [UserController::class, 'changeRole'])->name('change-role');
-        Route::get('/{user}/activities', [UserController::class, 'activities'])->name('activities');
     });
     
     // Statistics - Admin seulement
