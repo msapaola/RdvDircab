@@ -6,12 +6,11 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 
-export default function Index({ users, stats, filters, auth }) {
+export default function Index({ users, stats, filters }) {
     // Vérification défensive des données
     const safeUsers = users || { data: [], total: 0, links: [], from: 0, to: 0 };
     const safeStats = stats || { total: 0, admins: 0, assistants: 0, verified: 0, unverified: 0 };
     const safeFilters = filters || {};
-    const safeAuth = auth || { user: null };
     
     // Vérification supplémentaire pour les liens de pagination
     if (!safeUsers.links || !Array.isArray(safeUsers.links)) {
@@ -22,14 +21,6 @@ export default function Index({ users, stats, filters, auth }) {
     if (!safeUsers.data || !Array.isArray(safeUsers.data)) {
         safeUsers.data = [];
     }
-    
-    // Vérification supplémentaire pour les propriétés de pagination
-    safeUsers.current_page = safeUsers.current_page || 1;
-    safeUsers.last_page = safeUsers.last_page || 1;
-    safeUsers.per_page = safeUsers.per_page || 15;
-    safeUsers.total = safeUsers.total || 0;
-    safeUsers.from = safeUsers.from || 0;
-    safeUsers.to = safeUsers.to || 0;
     
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -342,14 +333,12 @@ export default function Index({ users, stats, filters, auth }) {
                                                     >
                                                         {safeUser.email_verified_at ? 'Désactiver' : 'Activer'}
                                                     </button>
-                                                    {safeUser.id !== safeAuth?.user?.id && (
-                                                        <button
-                                                            onClick={() => openDeleteModal(safeUser)}
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            Supprimer
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        onClick={() => openDeleteModal(safeUser)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        Supprimer
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -367,27 +356,18 @@ export default function Index({ users, stats, filters, auth }) {
                                         Affichage de {safeUsers.from} à {safeUsers.to} sur {safeUsers.total} résultats
                                     </div>
                                     <div className="flex space-x-2">
-                                        {safeUsers.links.map((link, index) => {
-                                            // Vérification défensive pour chaque lien
-                                            const safeLink = {
-                                                url: link?.url || null,
-                                                label: link?.label || '',
-                                                active: link?.active || false,
-                                            };
-                                            
-                                            return (
-                                                <Link
-                                                    key={index}
-                                                    href={safeLink.url}
-                                                    className={`px-3 py-2 text-sm rounded-md ${
-                                                        safeLink.active
-                                                            ? 'bg-blue-500 text-white'
-                                                            : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                    } ${!safeLink.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    dangerouslySetInnerHTML={{ __html: safeLink.label }}
-                                                />
-                                            );
-                                        })}
+                                        {safeUsers.links.map((link, index) => (
+                                            <Link
+                                                key={index}
+                                                href={link.url}
+                                                className={`px-3 py-2 text-sm rounded-md ${
+                                                    link.active
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             </div>
