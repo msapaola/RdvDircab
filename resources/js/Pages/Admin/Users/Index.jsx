@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
@@ -125,6 +125,12 @@ export default function Index({ users, stats, filters }) {
                             </div>
                             
                             <div className="flex space-x-3">
+                                <Link
+                                    href={route('admin.dashboard')}
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                    ← Retour au tableau de bord
+                                </Link>
                                 <PrimaryButton onClick={() => setShowCreateModal(true)}>
                                     Nouvel utilisateur
                                 </PrimaryButton>
