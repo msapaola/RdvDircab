@@ -8,10 +8,20 @@ import DashboardMenu from '@/Components/DashboardMenu';
 
 export default function Index({ users, stats, filters, auth }) {
     // Vérification défensive des données
-    const safeUsers = users || { data: [], total: 0, links: [] };
+    const safeUsers = users || { data: [], total: 0, links: [], from: 0, to: 0 };
     const safeStats = stats || { total: 0, admins: 0, assistants: 0, verified: 0, unverified: 0 };
     const safeFilters = filters || {};
     const safeAuth = auth || { user: null };
+    
+    // Vérification supplémentaire pour les liens de pagination
+    if (!safeUsers.links || !Array.isArray(safeUsers.links)) {
+        safeUsers.links = [];
+    }
+    
+    // Vérification supplémentaire pour les données utilisateurs
+    if (!safeUsers.data || !Array.isArray(safeUsers.data)) {
+        safeUsers.data = [];
+    }
     
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -262,60 +272,71 @@ export default function Index({ users, stats, filters, auth }) {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {safeUsers.data && safeUsers.data.map((user) => (
-                                        <tr key={user.id} className="hover:bg-gray-50">
+                                    {safeUsers.data && safeUsers.data.map((user) => {
+                                        // Vérification défensive pour chaque utilisateur
+                                        const safeUser = {
+                                            id: user?.id || 0,
+                                            name: user?.name || '',
+                                            email: user?.email || '',
+                                            role: user?.role || 'assistant',
+                                            email_verified_at: user?.email_verified_at || null,
+                                            created_at: user?.created_at || '',
+                                        };
+                                        
+                                        return (
+                                        <tr key={safeUser.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {user.name}
+                                                        {safeUser.name}
                                                     </div>
                                                     <div className="text-sm text-gray-500">
-                                                        {user.email}
+                                                        {safeUser.email}
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <StatusBadge 
-                                                    status={user.role === 'admin' ? 'Administrateur' : 'Assistant'}
-                                                    color={getRoleColor(user.role)}
+                                                    status={safeUser.role === 'admin' ? 'Administrateur' : 'Assistant'}
+                                                    color={getRoleColor(safeUser.role)}
                                                 />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <StatusBadge 
-                                                    status={user.email_verified_at ? 'Actif' : 'Inactif'}
-                                                    color={getStatusColor(user)}
+                                                    status={safeUser.email_verified_at ? 'Actif' : 'Inactif'}
+                                                    color={getStatusColor(safeUser)}
                                                 />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {user.created_at}
+                                                {safeUser.created_at}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-2">
                                                     <Link
-                                                        href={route('admin.users.show', user.id)}
+                                                        href={route('admin.users.show', safeUser.id)}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
                                                         Voir
                                                     </Link>
                                                     <button
-                                                        onClick={() => openEditModal(user)}
+                                                        onClick={() => openEditModal(safeUser)}
                                                         className="text-green-600 hover:text-green-900"
                                                     >
                                                         Modifier
                                                     </button>
                                                     <button
-                                                        onClick={() => handleToggleStatus(user)}
+                                                        onClick={() => handleToggleStatus(safeUser)}
                                                         className={`${
-                                                            user.email_verified_at 
+                                                            safeUser.email_verified_at 
                                                                 ? 'text-orange-600 hover:text-orange-900' 
                                                                 : 'text-green-600 hover:text-green-900'
                                                         }`}
                                                     >
-                                                        {user.email_verified_at ? 'Désactiver' : 'Activer'}
+                                                        {safeUser.email_verified_at ? 'Désactiver' : 'Activer'}
                                                     </button>
-                                                    {user.id !== safeAuth?.user?.id && (
+                                                    {safeUser.id !== safeAuth?.user?.id && (
                                                         <button
-                                                            onClick={() => openDeleteModal(user)}
+                                                            onClick={() => openDeleteModal(safeUser)}
                                                             className="text-red-600 hover:text-red-900"
                                                         >
                                                             Supprimer
@@ -324,7 +345,8 @@ export default function Index({ users, stats, filters, auth }) {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
