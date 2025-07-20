@@ -362,8 +362,9 @@ class PublicController extends Controller
             return false;
         }
 
-        // Vérifier s'il y a un créneau bloqué
+        // Vérifier s'il y a un créneau bloqué (non récurrent)
         $blockedSlot = BlockedSlot::where('date', $date)
+            ->where('is_recurring', false)
             ->where(function ($query) use ($time) {
                 $query->where('start_time', '<=', $time)
                       ->where('end_time', '>', $time);
@@ -372,6 +373,20 @@ class PublicController extends Controller
 
         if ($blockedSlot) {
             return false;
+        }
+
+        // Vérifier s'il y a un créneau bloqué récurrent
+        $recurringBlockedSlots = BlockedSlot::recurring()->active()->get();
+
+        foreach ($recurringBlockedSlots as $slot) {
+            if ($slot->isApplicableForDate(Carbon::parse($date))) {
+                $slotStart = $slot->start_time->format('H:i');
+                $slotEnd = $slot->end_time->format('H:i');
+                
+                if ($time >= $slotStart && $time < $slotEnd) {
+                    return false;
+                }
+            }
         }
 
         return true;

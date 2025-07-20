@@ -234,37 +234,21 @@ class BlockedSlot extends Model
             $currentDate = $startDate->copy();
 
             while ($currentDate <= $endDate) {
-                // Skip if slot is not applicable for this day
-                if (!$slot->isApplicableForDate($currentDate)) {
-                    $currentDate->addDay();
-                    continue;
+                // Check if slot is applicable for this day
+                if ($slot->isApplicableForDate($currentDate)) {
+                    // Create slot instance for this date
+                    $slots[] = [
+                        'date' => $currentDate->format('Y-m-d'),
+                        'start_time' => $slot->start_time->format('H:i'),
+                        'end_time' => $slot->end_time->format('H:i'),
+                        'type' => $slot->type,
+                        'reason' => $slot->reason,
+                        'description' => $slot->description,
+                    ];
                 }
 
-                // Create slot instance for this date
-                $slots[] = [
-                    'date' => $currentDate->format('Y-m-d'),
-                    'start_time' => $slot->start_time->format('H:i'),
-                    'end_time' => $slot->end_time->format('H:i'),
-                    'type' => $slot->type,
-                    'reason' => $slot->reason,
-                    'description' => $slot->description,
-                ];
-
-                // Move to next occurrence based on recurrence type
-                switch ($slot->recurrence_type) {
-                    case self::RECURRENCE_DAILY:
-                        $currentDate->addDay();
-                        break;
-                    case self::RECURRENCE_WEEKLY:
-                        $currentDate->addWeek();
-                        break;
-                    case self::RECURRENCE_MONTHLY:
-                        $currentDate->addMonth();
-                        break;
-                    default:
-                        $currentDate->addDay();
-                        break;
-                }
+                // Always move to next day for proper coverage
+                $currentDate->addDay();
             }
         }
 
@@ -285,11 +269,31 @@ class BlockedSlot extends Model
             return false;
         }
 
+        // Check if date is after the original slot date
+        if ($date->isBefore($this->date)) {
+            return false;
+        }
+
         // For lunch breaks, apply only on weekdays
         if ($this->type === self::TYPE_LUNCH) {
             return $date->isWeekday();
         }
 
-        return true;
+        // Check recurrence pattern
+        switch ($this->recurrence_type) {
+            case self::RECURRENCE_DAILY:
+                return true; // Every day
+                
+            case self::RECURRENCE_WEEKLY:
+                // Same day of week as original slot
+                return $date->dayOfWeek === $this->date->dayOfWeek;
+                
+            case self::RECURRENCE_MONTHLY:
+                // Same day of month as original slot
+                return $date->day === $this->date->day;
+                
+            default:
+                return true;
+        }
     }
 } 
