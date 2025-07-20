@@ -58,6 +58,9 @@ class UserController extends Controller
             'users' => $users,
             'stats' => $stats,
             'filters' => $request->only(['role', 'search', 'status', 'sort_by', 'sort_order']),
+            'auth' => [
+                'user' => auth()->user(),
+            ],
         ]);
     }
 

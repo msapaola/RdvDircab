@@ -6,7 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 
-export default function Index({ users, stats, filters }) {
+export default function Index({ users, stats, filters, auth }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -86,7 +86,7 @@ export default function Index({ users, stats, filters }) {
             email: user.email,
             password: '',
             password_confirmation: '',
-            role: user.roles[0]?.name || 'assistant',
+            role: user.role || 'assistant',
         });
         setShowEditModal(true);
     };
@@ -270,8 +270,8 @@ export default function Index({ users, stats, filters }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <StatusBadge 
-                                                    status={user.roles[0]?.name === 'admin' ? 'Administrateur' : 'Assistant'}
-                                                    color={getRoleColor(user.roles[0]?.name)}
+                                                    status={user.role === 'admin' ? 'Administrateur' : 'Assistant'}
+                                                    color={getRoleColor(user.role)}
                                                 />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
