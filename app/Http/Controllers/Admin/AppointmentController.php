@@ -221,8 +221,9 @@ class AppointmentController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'reason' => 'required|string|max:255',
-            'recurring' => 'boolean',
-            'recurring_until' => 'nullable|date|after:date',
+            'is_recurring' => 'boolean',
+            'recurrence_type' => 'nullable|in:daily,weekly,monthly',
+            'recurrence_end_date' => 'nullable|date|after:date',
         ]);
 
         $blockedSlot = BlockedSlot::create([
@@ -230,24 +231,11 @@ class AppointmentController extends Controller
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'reason' => $request->reason,
+            'is_recurring' => $request->boolean('is_recurring'),
+            'recurrence_type' => $request->boolean('is_recurring') ? $request->recurrence_type : null,
+            'recurrence_end_date' => $request->boolean('is_recurring') ? $request->recurrence_end_date : null,
             'created_by' => auth()->id(),
         ]);
-
-        // Gérer la récurrence si activée
-        if ($request->recurring && $request->recurring_until) {
-            $currentDate = \Carbon\Carbon::parse($request->date);
-            $endDate = \Carbon\Carbon::parse($request->recurring_until);
-            
-            while ($currentDate->addWeek() <= $endDate) {
-                BlockedSlot::create([
-                    'date' => $currentDate->format('Y-m-d'),
-                    'start_time' => $request->start_time,
-                    'end_time' => $request->end_time,
-                    'reason' => $request->reason . ' (récurrent)',
-                    'created_by' => auth()->id(),
-                ]);
-            }
-        }
 
         activity()
             ->causedBy(auth()->user())

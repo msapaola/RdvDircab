@@ -29,6 +29,67 @@ export default function Index({ blockedSlots, stats, filters }) {
         if (!date) return '';
         return new Date(date).toISOString().split('T')[0];
     };
+
+    // Fonctions pour la sélection adaptée des dates
+    const getCurrentWeek = () => {
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const days = Math.floor((now - startOfYear) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil(days / 7);
+        return weekNumber;
+    };
+
+    const getCurrentMonth = () => {
+        return new Date().getMonth() + 1; // 1-12
+    };
+
+    const getCurrentYear = () => {
+        return new Date().getFullYear();
+    };
+
+    const getWeekDates = (weekNumber, year) => {
+        const startOfYear = new Date(year, 0, 1);
+        const startOfWeek = new Date(startOfYear);
+        startOfWeek.setDate(startOfYear.getDate() + (weekNumber - 1) * 7);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+        return {
+            start: formatDateForInput(startOfWeek),
+            end: formatDateForInput(endOfWeek)
+        };
+    };
+
+    const getMonthDates = (month, year) => {
+        const startOfMonth = new Date(year, month - 1, 1);
+        const endOfMonth = new Date(year, month, 0);
+        
+        return {
+            start: formatDateForInput(startOfMonth),
+            end: formatDateForInput(endOfMonth)
+        };
+    };
+
+    const getDateFromSelection = (type, week, month, year) => {
+        switch (type) {
+            case 'daily':
+                return formatDateForInput(new Date());
+            case 'weekly':
+                if (week && year) {
+                    const weekDates = getWeekDates(week, year);
+                    return weekDates.start; // Retourner le lundi de la semaine
+                }
+                return formatDateForInput(new Date());
+            case 'monthly':
+                if (month && year) {
+                    return formatDateForInput(new Date(year, month - 1, 1));
+                }
+                return formatDateForInput(new Date());
+            default:
+                return formatDateForInput(new Date());
+        }
+    };
     
     // États
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -49,8 +110,13 @@ export default function Index({ blockedSlots, stats, filters }) {
         start_time: '',
         end_time: '',
         reason: '',
-        recurring: false,
-        recurring_until: '',
+        is_recurring: false,
+        recurrence_type: 'daily',
+        recurrence_end_date: '',
+        // Champs pour la sélection adaptée
+        selected_week: '',
+        selected_month: '',
+        selected_year: '',
     });
 
     const editForm = useForm({
@@ -59,8 +125,12 @@ export default function Index({ blockedSlots, stats, filters }) {
         end_time: '',
         reason: '',
         is_recurring: false,
-        recurrence_type: 'weekly',
+        recurrence_type: 'daily',
         recurrence_end_date: '',
+        // Champs pour la sélection adaptée
+        selected_week: '',
+        selected_month: '',
+        selected_year: '',
     });
 
     const handleFilter = () => {
@@ -83,8 +153,12 @@ export default function Index({ blockedSlots, stats, filters }) {
                     start_time: '',
                     end_time: '',
                     reason: '',
-                    recurring: false,
-                    recurring_until: '',
+                    is_recurring: false,
+                    recurrence_type: 'daily',
+                    recurrence_end_date: '',
+                    selected_week: '',
+                    selected_month: '',
+                    selected_year: '',
                 });
             },
         });
@@ -112,14 +186,23 @@ export default function Index({ blockedSlots, stats, filters }) {
     const openEditModal = (slot) => {
         setSelectedSlot(slot);
         
+        // Déterminer les valeurs de sélection adaptée basées sur la date du slot
+        const slotDate = new Date(slot.date);
+        const weekNumber = getCurrentWeek();
+        const monthNumber = slotDate.getMonth() + 1;
+        const yearNumber = slotDate.getFullYear();
+        
         editForm.setData({
             date: formatDateForInput(slot.date),
             start_time: slot.start_time,
             end_time: slot.end_time,
             reason: slot.reason,
             is_recurring: slot.is_recurring || false,
-            recurrence_type: slot.recurrence_type || 'weekly',
+            recurrence_type: slot.recurrence_type || 'daily',
             recurrence_end_date: formatDateForInput(slot.recurrence_end_date),
+            selected_week: weekNumber,
+            selected_month: monthNumber,
+            selected_year: yearNumber,
         });
         setShowEditModal(true);
     };
@@ -445,26 +528,135 @@ export default function Index({ blockedSlots, stats, filters }) {
                             <input
                                 type="checkbox"
                                 id="recurring"
-                                checked={createForm.data.recurring}
-                                onChange={(e) => createForm.setData('recurring', e.target.checked)}
+                                checked={createForm.data.is_recurring}
+                                onChange={(e) => createForm.setData('is_recurring', e.target.checked)}
                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor="recurring" className="text-sm font-medium text-gray-700">
-                                Créneau récurrent (hebdomadaire)
+                                Créneau récurrent
                             </label>
                         </div>
-                        {createForm.data.recurring && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
-                                <input
-                                    type="date"
-                                    value={createForm.data.recurring_until || formatDateForInput(new Date())}
-                                    onChange={(e) => createForm.setData('recurring_until', e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
-                                {createForm.errors.recurring_until && (
-                                    <p className="text-red-500 text-sm mt-1">{createForm.errors.recurring_until}</p>
+                        
+                        {createForm.data.is_recurring && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type de récurrence</label>
+                                    <select
+                                        value={createForm.data.recurrence_type}
+                                        onChange={(e) => createForm.setData('recurrence_type', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    >
+                                        <option value="daily">Quotidien</option>
+                                        <option value="weekly">Hebdomadaire</option>
+                                        <option value="monthly">Mensuel</option>
+                                    </select>
+                                    {createForm.errors.recurrence_type && (
+                                        <p className="text-red-500 text-sm mt-1">{createForm.errors.recurrence_type}</p>
+                                    )}
+                                </div>
+                                
+                                {/* Sélection adaptée selon le type de récurrence */}
+                                {createForm.data.recurrence_type === 'weekly' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
+                                            <select
+                                                value={createForm.data.selected_week || getCurrentWeek()}
+                                                onChange={(e) => {
+                                                    createForm.setData('selected_week', e.target.value);
+                                                    const weekDates = getWeekDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
+                                                    createForm.setData('date', weekDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 52}, (_, i) => i + 1).map(week => (
+                                                    <option key={week} value={week}>
+                                                        Semaine {week}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                            <select
+                                                value={createForm.data.selected_year || getCurrentYear()}
+                                                onChange={(e) => {
+                                                    createForm.setData('selected_year', e.target.value);
+                                                    const weekDates = getWeekDates(createForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
+                                                    createForm.setData('date', weekDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 )}
+                                
+                                {createForm.data.recurrence_type === 'monthly' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
+                                            <select
+                                                value={createForm.data.selected_month || getCurrentMonth()}
+                                                onChange={(e) => {
+                                                    createForm.setData('selected_month', e.target.value);
+                                                    const monthDates = getMonthDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
+                                                    createForm.setData('date', monthDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                <option value="1">Janvier</option>
+                                                <option value="2">Février</option>
+                                                <option value="3">Mars</option>
+                                                <option value="4">Avril</option>
+                                                <option value="5">Mai</option>
+                                                <option value="6">Juin</option>
+                                                <option value="7">Juillet</option>
+                                                <option value="8">Août</option>
+                                                <option value="9">Septembre</option>
+                                                <option value="10">Octobre</option>
+                                                <option value="11">Novembre</option>
+                                                <option value="12">Décembre</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                            <select
+                                                value={createForm.data.selected_year || getCurrentYear()}
+                                                onChange={(e) => {
+                                                    createForm.setData('selected_year', e.target.value);
+                                                    const monthDates = getMonthDates(createForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
+                                                    createForm.setData('date', monthDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
+                                    <input
+                                        type="date"
+                                        value={createForm.data.recurrence_end_date || formatDateForInput(new Date())}
+                                        onChange={(e) => createForm.setData('recurrence_end_date', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                    {createForm.errors.recurrence_end_date && (
+                                        <p className="text-red-500 text-sm mt-1">{createForm.errors.recurrence_end_date}</p>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -570,6 +762,96 @@ export default function Index({ blockedSlots, stats, filters }) {
                                         <p className="text-red-500 text-sm mt-1">{editForm.errors.recurrence_type}</p>
                                     )}
                                 </div>
+                                
+                                {/* Sélection adaptée selon le type de récurrence */}
+                                {editForm.data.recurrence_type === 'weekly' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
+                                            <select
+                                                value={editForm.data.selected_week || getCurrentWeek()}
+                                                onChange={(e) => {
+                                                    editForm.setData('selected_week', e.target.value);
+                                                    const weekDates = getWeekDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
+                                                    editForm.setData('date', weekDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 52}, (_, i) => i + 1).map(week => (
+                                                    <option key={week} value={week}>
+                                                        Semaine {week}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                            <select
+                                                value={editForm.data.selected_year || getCurrentYear()}
+                                                onChange={(e) => {
+                                                    editForm.setData('selected_year', e.target.value);
+                                                    const weekDates = getWeekDates(editForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
+                                                    editForm.setData('date', weekDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {editForm.data.recurrence_type === 'monthly' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
+                                            <select
+                                                value={editForm.data.selected_month || getCurrentMonth()}
+                                                onChange={(e) => {
+                                                    editForm.setData('selected_month', e.target.value);
+                                                    const monthDates = getMonthDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
+                                                    editForm.setData('date', monthDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                <option value="1">Janvier</option>
+                                                <option value="2">Février</option>
+                                                <option value="3">Mars</option>
+                                                <option value="4">Avril</option>
+                                                <option value="5">Mai</option>
+                                                <option value="6">Juin</option>
+                                                <option value="7">Juillet</option>
+                                                <option value="8">Août</option>
+                                                <option value="9">Septembre</option>
+                                                <option value="10">Octobre</option>
+                                                <option value="11">Novembre</option>
+                                                <option value="12">Décembre</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                            <select
+                                                value={editForm.data.selected_year || getCurrentYear()}
+                                                onChange={(e) => {
+                                                    editForm.setData('selected_year', e.target.value);
+                                                    const monthDates = getMonthDates(editForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
+                                                    editForm.setData('date', monthDates.start);
+                                                }}
+                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            >
+                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
