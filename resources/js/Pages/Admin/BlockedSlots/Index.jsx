@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
+import DashboardMenu from '@/Components/DashboardMenu';
 
 export default function Index({ blockedSlots, stats, filters }) {
     // Vérification défensive des props
@@ -133,6 +134,8 @@ export default function Index({ blockedSlots, stats, filters }) {
             <Head title="Gestion des créneaux bloqués - Administration" />
             
             <div className="min-h-screen bg-gray-50">
+                <DashboardMenu />
+                
                 <header className="bg-white shadow-sm border-b mb-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                         <div className="flex justify-between items-center">
