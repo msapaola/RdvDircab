@@ -264,16 +264,31 @@ class AppointmentController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'reason' => 'required|string|max:255',
+            'is_recurring' => 'boolean',
+            'recurrence_type' => 'nullable|in:daily,weekly,monthly',
+            'recurrence_end_date' => 'nullable|date|after:date',
         ]);
 
         $oldReason = $blockedSlot->reason;
         
-        $blockedSlot->update([
+        $updateData = [
             'date' => $request->date,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'reason' => $request->reason,
-        ]);
+            'is_recurring' => $request->boolean('is_recurring'),
+        ];
+
+        // Gérer les champs de récurrence
+        if ($request->boolean('is_recurring')) {
+            $updateData['recurrence_type'] = $request->recurrence_type;
+            $updateData['recurrence_end_date'] = $request->recurrence_end_date;
+        } else {
+            $updateData['recurrence_type'] = null;
+            $updateData['recurrence_end_date'] = null;
+        }
+
+        $blockedSlot->update($updateData);
 
         activity()
             ->causedBy(auth()->user())

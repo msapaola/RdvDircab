@@ -562,7 +562,7 @@ export default function Index({ appointments, stats, filters }) {
                                                     </div>
                                                         <div className="text-xs text-gray-400">
                                                             {appointment.phone}
-                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -571,7 +571,7 @@ export default function Index({ appointments, stats, filters }) {
                                                 </div>
                                                     <div className="text-xs text-gray-500 mt-1">
                                                         Créé le {formatDate(appointment.created_at)}
-                                                    </div>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-gray-900">

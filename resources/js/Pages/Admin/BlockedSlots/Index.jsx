@@ -57,6 +57,9 @@ export default function Index({ blockedSlots, stats, filters }) {
         start_time: '',
         end_time: '',
         reason: '',
+        is_recurring: false,
+        recurrence_type: 'weekly',
+        recurrence_end_date: '',
     });
 
     const handleFilter = () => {
@@ -113,6 +116,9 @@ export default function Index({ blockedSlots, stats, filters }) {
             start_time: slot.start_time,
             end_time: slot.end_time,
             reason: slot.reason,
+            is_recurring: slot.is_recurring || false,
+            recurrence_type: slot.recurrence_type || 'weekly',
+            recurrence_end_date: formatDateForInput(slot.recurrence_end_date),
         });
         setShowEditModal(true);
     };
@@ -251,6 +257,9 @@ export default function Index({ blockedSlots, stats, filters }) {
                                             Créé par
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Récurrence
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
@@ -277,6 +286,19 @@ export default function Index({ blockedSlots, stats, filters }) {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {slot.created_by_user?.name || 'Système'}
                                             </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {slot.is_recurring ? (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        🔄 {slot.recurrence_type === 'daily' ? 'Quotidien' : 
+                                                            slot.recurrence_type === 'weekly' ? 'Hebdomadaire' : 
+                                                            slot.recurrence_type === 'monthly' ? 'Mensuel' : 'Récurrent'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                        ⚪ Unique
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-3">
                                                     <button
@@ -297,7 +319,7 @@ export default function Index({ blockedSlots, stats, filters }) {
                                     ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                                            <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                                                 Aucun créneau bloqué trouvé
                                             </td>
                                         </tr>
@@ -514,6 +536,52 @@ export default function Index({ blockedSlots, stats, filters }) {
                                 <p className="text-red-500 text-sm mt-1">{editForm.errors.reason}</p>
                             )}
                         </div>
+                        
+                        <div className="flex items-center space-x-3">
+                            <input
+                                type="checkbox"
+                                id="edit_recurring"
+                                checked={editForm.data.is_recurring}
+                                onChange={(e) => editForm.setData('is_recurring', e.target.checked)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="edit_recurring" className="text-sm font-medium text-gray-700">
+                                Créneau récurrent
+                            </label>
+                        </div>
+                        
+                        {editForm.data.is_recurring && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type de récurrence</label>
+                                    <select
+                                        value={editForm.data.recurrence_type}
+                                        onChange={(e) => editForm.setData('recurrence_type', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    >
+                                        <option value="daily">Quotidien</option>
+                                        <option value="weekly">Hebdomadaire</option>
+                                        <option value="monthly">Mensuel</option>
+                                    </select>
+                                    {editForm.errors.recurrence_type && (
+                                        <p className="text-red-500 text-sm mt-1">{editForm.errors.recurrence_type}</p>
+                                    )}
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
+                                    <input
+                                        type="date"
+                                        value={editForm.data.recurrence_end_date}
+                                        onChange={(e) => editForm.setData('recurrence_end_date', e.target.value)}
+                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                    {editForm.errors.recurrence_end_date && (
+                                        <p className="text-red-500 text-sm mt-1">{editForm.errors.recurrence_end_date}</p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="mt-6 flex justify-end space-x-3">
                         <SecondaryButton onClick={() => setShowEditModal(false)}>
