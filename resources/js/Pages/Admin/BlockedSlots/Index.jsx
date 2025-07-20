@@ -78,12 +78,13 @@ export default function Index({ blockedSlots, stats, filters }) {
             case 'weekly':
                 if (week && year) {
                     const weekDates = getWeekDates(week, year);
-                    return weekDates.start; // Retourner le lundi de la semaine
+                    return weekDates.end; // Retourner le dernier jour de la semaine (vendredi)
                 }
                 return formatDateForInput(new Date());
             case 'monthly':
                 if (month && year) {
-                    return formatDateForInput(new Date(year, month - 1, 1));
+                    const monthDates = getMonthDates(month, year);
+                    return monthDates.end; // Retourner le dernier jour du mois
                 }
                 return formatDateForInput(new Date());
             default:
@@ -188,9 +189,15 @@ export default function Index({ blockedSlots, stats, filters }) {
         
         // Déterminer les valeurs de sélection adaptée basées sur la date du slot
         const slotDate = new Date(slot.date);
-        const weekNumber = getCurrentWeek();
-        const monthNumber = slotDate.getMonth() + 1;
         const yearNumber = slotDate.getFullYear();
+        
+        // Calculer la semaine de l'année
+        const startOfYear = new Date(yearNumber, 0, 1);
+        const days = Math.floor((slotDate - startOfYear) / (24 * 60 * 60 * 1000));
+        const weekNumber = Math.ceil(days / 7);
+        
+        // Calculer le mois
+        const monthNumber = slotDate.getMonth() + 1;
         
         editForm.setData({
             date: formatDateForInput(slot.date),
@@ -557,106 +564,139 @@ export default function Index({ blockedSlots, stats, filters }) {
                                 
                                 {/* Sélection adaptée selon le type de récurrence */}
                                 {createForm.data.recurrence_type === 'weekly' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
-                                            <select
-                                                value={createForm.data.selected_week || getCurrentWeek()}
-                                                onChange={(e) => {
-                                                    createForm.setData('selected_week', e.target.value);
-                                                    const weekDates = getWeekDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
-                                                    createForm.setData('date', weekDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 52}, (_, i) => i + 1).map(week => (
-                                                    <option key={week} value={week}>
-                                                        Semaine {week}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
+                                                <select
+                                                    value={createForm.data.selected_week || getCurrentWeek()}
+                                                    onChange={(e) => {
+                                                        createForm.setData('selected_week', e.target.value);
+                                                        const weekDates = getWeekDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
+                                                        createForm.setData('date', weekDates.end);
+                                                        createForm.setData('recurrence_end_date', weekDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 52}, (_, i) => i + 1).map(week => (
+                                                        <option key={week} value={week}>
+                                                            Semaine {week}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                                <select
+                                                    value={createForm.data.selected_year || getCurrentYear()}
+                                                    onChange={(e) => {
+                                                        createForm.setData('selected_year', e.target.value);
+                                                        const weekDates = getWeekDates(createForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
+                                                        createForm.setData('date', weekDates.end);
+                                                        createForm.setData('recurrence_end_date', weekDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                        <option key={year} value={year}>
+                                                            {year}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                                            <select
-                                                value={createForm.data.selected_year || getCurrentYear()}
-                                                onChange={(e) => {
-                                                    createForm.setData('selected_year', e.target.value);
-                                                    const weekDates = getWeekDates(createForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
-                                                    createForm.setData('date', weekDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
-                                                    <option key={year} value={year}>
-                                                        {year}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="bg-blue-50 p-3 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Période sélectionnée :</strong> {(() => {
+                                                    const weekDates = getWeekDates(
+                                                        createForm.data.selected_week || getCurrentWeek(), 
+                                                        createForm.data.selected_year || getCurrentYear()
+                                                    );
+                                                    return `${weekDates.start} au ${weekDates.end}`;
+                                                })()}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
                                 
                                 {createForm.data.recurrence_type === 'monthly' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
-                                            <select
-                                                value={createForm.data.selected_month || getCurrentMonth()}
-                                                onChange={(e) => {
-                                                    createForm.setData('selected_month', e.target.value);
-                                                    const monthDates = getMonthDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
-                                                    createForm.setData('date', monthDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                <option value="1">Janvier</option>
-                                                <option value="2">Février</option>
-                                                <option value="3">Mars</option>
-                                                <option value="4">Avril</option>
-                                                <option value="5">Mai</option>
-                                                <option value="6">Juin</option>
-                                                <option value="7">Juillet</option>
-                                                <option value="8">Août</option>
-                                                <option value="9">Septembre</option>
-                                                <option value="10">Octobre</option>
-                                                <option value="11">Novembre</option>
-                                                <option value="12">Décembre</option>
-                                            </select>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
+                                                <select
+                                                    value={createForm.data.selected_month || getCurrentMonth()}
+                                                    onChange={(e) => {
+                                                        createForm.setData('selected_month', e.target.value);
+                                                        const monthDates = getMonthDates(parseInt(e.target.value), createForm.data.selected_year || getCurrentYear());
+                                                        createForm.setData('date', monthDates.end);
+                                                        createForm.setData('recurrence_end_date', monthDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    <option value="1">Janvier</option>
+                                                    <option value="2">Février</option>
+                                                    <option value="3">Mars</option>
+                                                    <option value="4">Avril</option>
+                                                    <option value="5">Mai</option>
+                                                    <option value="6">Juin</option>
+                                                    <option value="7">Juillet</option>
+                                                    <option value="8">Août</option>
+                                                    <option value="9">Septembre</option>
+                                                    <option value="10">Octobre</option>
+                                                    <option value="11">Novembre</option>
+                                                    <option value="12">Décembre</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                                <select
+                                                    value={createForm.data.selected_year || getCurrentYear()}
+                                                    onChange={(e) => {
+                                                        createForm.setData('selected_year', e.target.value);
+                                                        const monthDates = getMonthDates(createForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
+                                                        createForm.setData('date', monthDates.end);
+                                                        createForm.setData('recurrence_end_date', monthDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                        <option key={year} value={year}>
+                                                            {year}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                                            <select
-                                                value={createForm.data.selected_year || getCurrentYear()}
-                                                onChange={(e) => {
-                                                    createForm.setData('selected_year', e.target.value);
-                                                    const monthDates = getMonthDates(createForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
-                                                    createForm.setData('date', monthDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
-                                                    <option key={year} value={year}>
-                                                        {year}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="bg-blue-50 p-3 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Période sélectionnée :</strong> {(() => {
+                                                    const monthDates = getMonthDates(
+                                                        createForm.data.selected_month || getCurrentMonth(), 
+                                                        createForm.data.selected_year || getCurrentYear()
+                                                    );
+                                                    return `${monthDates.start} au ${monthDates.end}`;
+                                                })()}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
                                 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
-                                    <input
-                                        type="date"
-                                        value={createForm.data.recurrence_end_date || formatDateForInput(new Date())}
-                                        onChange={(e) => createForm.setData('recurrence_end_date', e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                    {createForm.errors.recurrence_end_date && (
-                                        <p className="text-red-500 text-sm mt-1">{createForm.errors.recurrence_end_date}</p>
-                                    )}
-                                </div>
+                                {/* Champ "Jusqu'au" seulement pour les créneaux quotidiens */}
+                                {createForm.data.recurrence_type === 'daily' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
+                                        <input
+                                            type="date"
+                                            value={createForm.data.recurrence_end_date || formatDateForInput(new Date())}
+                                            onChange={(e) => createForm.setData('recurrence_end_date', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        {createForm.errors.recurrence_end_date && (
+                                            <p className="text-red-500 text-sm mt-1">{createForm.errors.recurrence_end_date}</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -765,106 +805,139 @@ export default function Index({ blockedSlots, stats, filters }) {
                                 
                                 {/* Sélection adaptée selon le type de récurrence */}
                                 {editForm.data.recurrence_type === 'weekly' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
-                                            <select
-                                                value={editForm.data.selected_week || getCurrentWeek()}
-                                                onChange={(e) => {
-                                                    editForm.setData('selected_week', e.target.value);
-                                                    const weekDates = getWeekDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
-                                                    editForm.setData('date', weekDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 52}, (_, i) => i + 1).map(week => (
-                                                    <option key={week} value={week}>
-                                                        Semaine {week}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Semaine</label>
+                                                <select
+                                                    value={editForm.data.selected_week || getCurrentWeek()}
+                                                    onChange={(e) => {
+                                                        editForm.setData('selected_week', e.target.value);
+                                                        const weekDates = getWeekDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
+                                                        editForm.setData('date', weekDates.end);
+                                                        editForm.setData('recurrence_end_date', weekDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 52}, (_, i) => i + 1).map(week => (
+                                                        <option key={week} value={week}>
+                                                            Semaine {week}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                                <select
+                                                    value={editForm.data.selected_year || getCurrentYear()}
+                                                    onChange={(e) => {
+                                                        editForm.setData('selected_year', e.target.value);
+                                                        const weekDates = getWeekDates(editForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
+                                                        editForm.setData('date', weekDates.end);
+                                                        editForm.setData('recurrence_end_date', weekDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                        <option key={year} value={year}>
+                                                            {year}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                                            <select
-                                                value={editForm.data.selected_year || getCurrentYear()}
-                                                onChange={(e) => {
-                                                    editForm.setData('selected_year', e.target.value);
-                                                    const weekDates = getWeekDates(editForm.data.selected_week || getCurrentWeek(), parseInt(e.target.value));
-                                                    editForm.setData('date', weekDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
-                                                    <option key={year} value={year}>
-                                                        {year}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="bg-blue-50 p-3 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Période sélectionnée :</strong> {(() => {
+                                                    const weekDates = getWeekDates(
+                                                        editForm.data.selected_week || getCurrentWeek(), 
+                                                        editForm.data.selected_year || getCurrentYear()
+                                                    );
+                                                    return `${weekDates.start} au ${weekDates.end}`;
+                                                })()}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
                                 
                                 {editForm.data.recurrence_type === 'monthly' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
-                                            <select
-                                                value={editForm.data.selected_month || getCurrentMonth()}
-                                                onChange={(e) => {
-                                                    editForm.setData('selected_month', e.target.value);
-                                                    const monthDates = getMonthDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
-                                                    editForm.setData('date', monthDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                <option value="1">Janvier</option>
-                                                <option value="2">Février</option>
-                                                <option value="3">Mars</option>
-                                                <option value="4">Avril</option>
-                                                <option value="5">Mai</option>
-                                                <option value="6">Juin</option>
-                                                <option value="7">Juillet</option>
-                                                <option value="8">Août</option>
-                                                <option value="9">Septembre</option>
-                                                <option value="10">Octobre</option>
-                                                <option value="11">Novembre</option>
-                                                <option value="12">Décembre</option>
-                                            </select>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Mois</label>
+                                                <select
+                                                    value={editForm.data.selected_month || getCurrentMonth()}
+                                                    onChange={(e) => {
+                                                        editForm.setData('selected_month', e.target.value);
+                                                        const monthDates = getMonthDates(parseInt(e.target.value), editForm.data.selected_year || getCurrentYear());
+                                                        editForm.setData('date', monthDates.end);
+                                                        editForm.setData('recurrence_end_date', monthDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    <option value="1">Janvier</option>
+                                                    <option value="2">Février</option>
+                                                    <option value="3">Mars</option>
+                                                    <option value="4">Avril</option>
+                                                    <option value="5">Mai</option>
+                                                    <option value="6">Juin</option>
+                                                    <option value="7">Juillet</option>
+                                                    <option value="8">Août</option>
+                                                    <option value="9">Septembre</option>
+                                                    <option value="10">Octobre</option>
+                                                    <option value="11">Novembre</option>
+                                                    <option value="12">Décembre</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
+                                                <select
+                                                    value={editForm.data.selected_year || getCurrentYear()}
+                                                    onChange={(e) => {
+                                                        editForm.setData('selected_year', e.target.value);
+                                                        const monthDates = getMonthDates(editForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
+                                                        editForm.setData('date', monthDates.end);
+                                                        editForm.setData('recurrence_end_date', monthDates.end);
+                                                    }}
+                                                    className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                >
+                                                    {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
+                                                        <option key={year} value={year}>
+                                                            {year}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Année</label>
-                                            <select
-                                                value={editForm.data.selected_year || getCurrentYear()}
-                                                onChange={(e) => {
-                                                    editForm.setData('selected_year', e.target.value);
-                                                    const monthDates = getMonthDates(editForm.data.selected_month || getCurrentMonth(), parseInt(e.target.value));
-                                                    editForm.setData('date', monthDates.start);
-                                                }}
-                                                className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                            >
-                                                {Array.from({length: 5}, (_, i) => getCurrentYear() - 2 + i).map(year => (
-                                                    <option key={year} value={year}>
-                                                        {year}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                        <div className="bg-blue-50 p-3 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>Période sélectionnée :</strong> {(() => {
+                                                    const monthDates = getMonthDates(
+                                                        editForm.data.selected_month || getCurrentMonth(), 
+                                                        editForm.data.selected_year || getCurrentYear()
+                                                    );
+                                                    return `${monthDates.start} au ${monthDates.end}`;
+                                                })()}
+                                            </p>
                                         </div>
                                     </div>
                                 )}
                                 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
-                                    <input
-                                        type="date"
-                                        value={editForm.data.recurrence_end_date}
-                                        onChange={(e) => editForm.setData('recurrence_end_date', e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
-                                    {editForm.errors.recurrence_end_date && (
-                                        <p className="text-red-500 text-sm mt-1">{editForm.errors.recurrence_end_date}</p>
-                                    )}
-                                </div>
+                                {/* Champ "Jusqu'au" seulement pour les créneaux quotidiens */}
+                                {editForm.data.recurrence_type === 'daily' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu'au</label>
+                                        <input
+                                            type="date"
+                                            value={editForm.data.recurrence_end_date}
+                                            onChange={(e) => editForm.setData('recurrence_end_date', e.target.value)}
+                                            className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        {editForm.errors.recurrence_end_date && (
+                                            <p className="text-red-500 text-sm mt-1">{editForm.errors.recurrence_end_date}</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
