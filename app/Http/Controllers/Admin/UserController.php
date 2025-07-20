@@ -14,13 +14,11 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::with('roles');
+        $query = User::query();
 
         // Filtres
         if ($request->filled('role')) {
-            $query->whereHas('roles', function ($q) use ($request) {
-                $q->where('name', $request->role);
-            });
+            $query->where('role', $request->role);
         }
 
         if ($request->filled('search')) {
@@ -50,12 +48,8 @@ class UserController extends Controller
         // Statistiques
         $stats = [
             'total' => User::count(),
-            'admins' => User::whereHas('roles', function ($q) {
-                $q->where('name', 'admin');
-            })->count(),
-            'assistants' => User::whereHas('roles', function ($q) {
-                $q->where('name', 'assistant');
-            })->count(),
+            'admins' => User::where('role', 'admin')->count(),
+            'assistants' => User::where('role', 'assistant')->count(),
             'verified' => User::whereNotNull('email_verified_at')->count(),
             'unverified' => User::whereNull('email_verified_at')->count(),
         ];
@@ -69,7 +63,6 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->load('roles');
         
         // Récupérer l'historique des activités
         $activities = Activity::where('causer_type', User::class)
@@ -106,10 +99,8 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role,
         ]);
-
-        // Assigner le rôle
-        $user->assignRole($request->role);
 
         // Marquer l'email comme vérifié pour les comptes admin
         if ($request->role === 'admin') {
@@ -137,6 +128,7 @@ class UserController extends Controller
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
+            'role' => $request->role,
         ]);
 
         // Mettre à jour le mot de passe si fourni
@@ -145,9 +137,6 @@ class UserController extends Controller
                 'password' => Hash::make($request->password),
             ]);
         }
-
-        // Mettre à jour le rôle
-        $user->syncRoles([$request->role]);
 
         // Marquer l'email comme vérifié pour les admins
         if ($request->role === 'admin' && !$user->hasVerifiedEmail()) {
@@ -172,10 +161,8 @@ class UserController extends Controller
         }
 
         // Empêcher la suppression du dernier admin
-        if ($user->hasRole('admin')) {
-            $adminCount = User::whereHas('roles', function ($q) {
-                $q->where('name', 'admin');
-            })->count();
+        if ($user->role === 'admin') {
+            $adminCount = User::where('role', 'admin')->count();
             
             if ($adminCount <= 1) {
                 return redirect()->back()
