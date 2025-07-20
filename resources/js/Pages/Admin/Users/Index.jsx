@@ -1,8 +1,94 @@
-import React from 'react';
-import { Head } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
 
 export default function Index({ users, stats, filters }) {
     console.log('Users component rendered with:', { users, stats, filters });
+    
+    // États de base
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    // Formulaires de base
+    const filterForm = useForm({
+        role: filters.role || '',
+        search: filters.search || '',
+        status: filters.status || '',
+        sort_by: filters.sort_by || 'created_at',
+        sort_order: filters.sort_order || 'desc',
+    });
+
+    const createForm = useForm({
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role: 'assistant',
+    });
+
+    const editForm = useForm({
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role: '',
+    });
+
+    // Fonctions de base
+    const handleFilter = () => {
+        filterForm.get(route('admin.users.index'));
+    };
+
+    const handleReset = () => {
+        filterForm.reset();
+        router.get(route('admin.users.index'));
+    };
+
+    const handleCreate = () => {
+        createForm.post(route('admin.users.store'), {
+            onSuccess: () => {
+                setShowCreateModal(false);
+                createForm.reset();
+            },
+        });
+    };
+
+    const handleEdit = () => {
+        editForm.put(route('admin.users.update', selectedUser.id), {
+            onSuccess: () => {
+                setShowEditModal(false);
+                setSelectedUser(null);
+                editForm.reset();
+            },
+        });
+    };
+
+    const handleDelete = () => {
+        router.delete(route('admin.users.destroy', selectedUser.id), {
+            onSuccess: () => {
+                setShowDeleteModal(false);
+                setSelectedUser(null);
+            },
+        });
+    };
+
+    const openEditModal = (user) => {
+        setSelectedUser(user);
+        editForm.setData({
+            name: user.name,
+            email: user.email,
+            password: '',
+            password_confirmation: '',
+            role: user.role || 'assistant',
+        });
+        setShowEditModal(true);
+    };
+
+    const openDeleteModal = (user) => {
+        setSelectedUser(user);
+        setShowDeleteModal(true);
+    };
     
     return (
         <>
