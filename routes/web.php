@@ -45,6 +45,16 @@ Route::get('/test-middleware', function () {
     return 'Middleware test - Si tu vois ce message, le middleware fonctionne';
 })->middleware(['auth', 'check.active']);
 
+// Route de test pour le nouveau middleware de test
+Route::get('/test-simple', function () {
+    return 'TestMiddleware fonctionne !';
+})->middleware('test.middleware');
+
+// Route de test pour CheckActive seul (sans auth)
+Route::get('/test-checkactive-only', function () {
+    return 'CheckActive seul fonctionne !';
+})->middleware('check.active');
+
 // Dashboard principal - redirige selon le rôle
 Route::get('/dashboard', function () {
     $user = auth()->user();

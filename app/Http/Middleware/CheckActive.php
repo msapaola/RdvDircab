@@ -11,19 +11,25 @@ class CheckActive
 {
     public function handle(Request $request, Closure $next)
     {
-        // Log simple pour vérifier que le middleware s'exécute
-        Log::info('CheckActive middleware exécuté', [
-            'user_id' => Auth::id(),
-            'is_active' => Auth::user() ? Auth::user()->is_active : null,
-            'route' => $request->path(),
-        ]);
+        // Log ultra-simple pour diagnostiquer
+        Log::info('CheckActive: Début du middleware');
         
-        $user = Auth::user();
-        if ($user && !$user->is_active) {
-            Auth::logout();
-            return redirect()->route('login')->withErrors(['email' => 'Votre compte a été désactivé.']);
+        try {
+            $user = Auth::user();
+            Log::info('CheckActive: User trouvé', ['user_id' => $user ? $user->id : null]);
+            
+            if ($user && !$user->is_active) {
+                Log::info('CheckActive: User inactif, déconnexion');
+                Auth::logout();
+                return redirect()->route('login')->withErrors(['email' => 'Votre compte a été désactivé.']);
+            }
+            
+            Log::info('CheckActive: User actif ou pas connecté');
+            return $next($request);
+            
+        } catch (\Exception $e) {
+            Log::error('CheckActive: Erreur', ['error' => $e->getMessage()]);
+            return $next($request);
         }
-        
-        return $next($request);
     }
 } 
