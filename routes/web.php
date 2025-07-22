@@ -40,26 +40,6 @@ Route::get('/test', [TestController::class, 'index'])->name('test');
 Route::get('/test-charts', [TestController::class, 'charts'])->name('test.charts');
 Route::get('/test-colors', [TestController::class, 'colors'])->name('test.colors');
 
-// Route de test pour le middleware CheckActive
-Route::get('/test-middleware', function () {
-    return 'Middleware test - Si tu vois ce message, le middleware fonctionne';
-})->middleware(['auth', 'check.active']);
-
-// Route de test pour le nouveau middleware de test
-Route::get('/test-simple', function () {
-    return 'TestMiddleware fonctionne !';
-})->middleware('test.middleware');
-
-// Route de test pour CheckActive seul (sans auth)
-Route::get('/test-checkactive-only', function () {
-    return 'CheckActive seul fonctionne !';
-})->middleware('check.active');
-
-// Route de test pour AuthAndActive
-Route::get('/test-auth-and-active', function () {
-    return 'AuthAndActive fonctionne !';
-})->middleware('auth.and.active');
-
 // Dashboard principal - redirige selon le rôle
 Route::get('/dashboard', function () {
     $user = auth()->user();

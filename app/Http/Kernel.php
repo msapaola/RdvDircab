@@ -46,13 +46,13 @@ class Kernel extends HttpKernel
     ];
 
     /**
-     * The application's middleware aliases.
+     * The application's route middleware.
      *
-     * Aliases may be used instead of class names to conveniently assign middleware to routes and groups.
+     * These middleware may be assigned to groups or used individually.
      *
-     * @var array<string, class-string|string>
+     * @var array
      */
-    protected $middlewareAliases = [
+    protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
@@ -65,7 +65,5 @@ class Kernel extends HttpKernel
         // Custom
         'check.active' => \App\Http\Middleware\CheckActive::class,
         'check.role' => \App\Http\Middleware\CheckRole::class,
-        'test.middleware' => \App\Http\Middleware\TestMiddleware::class,
-        'auth.and.active' => \App\Http\Middleware\AuthAndActive::class,
     ];
 } 
