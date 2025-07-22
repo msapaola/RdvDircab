@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\BlockedSlot;
+use App\Notifications\AppointmentStatusUpdate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -84,8 +85,13 @@ class AppointmentController extends Controller
 
     public function accept(Request $request, Appointment $appointment)
     {
+        $oldStatus = $appointment->status;
+        
         if ($appointment->accept(auth()->user())) {
-            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès.');
+            // Envoyer la notification avec le lien de suivi
+            $appointment->notify(new AppointmentStatusUpdate($appointment, $oldStatus));
+            
+            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Un email avec le lien de suivi a été envoyé au demandeur.');
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');
