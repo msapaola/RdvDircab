@@ -185,15 +185,10 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
-        if ($user->hasVerifiedEmail()) {
-            $user->email_verified_at = null;
-            $message = 'Compte désactivé';
-        } else {
-            $user->email_verified_at = now();
-            $message = 'Compte activé';
-        }
-
+        $user->is_active = !$user->is_active;
         $user->save();
+
+        $message = $user->is_active ? 'Compte activé' : 'Compte désactivé';
 
         activity()
             ->causedBy(auth()->user())

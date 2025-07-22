@@ -77,7 +77,7 @@ export default function Index(props) {
         });
     };
     const handleToggleStatus = (user) => {
-        if (confirm(`Êtes-vous sûr de vouloir ${user.email_verified_at ? 'désactiver' : 'activer'} ce compte ?`)) {
+        if (confirm(`Êtes-vous sûr de vouloir ${user.is_active ? 'désactiver' : 'activer'} ce compte ?`)) {
             router.post(route('admin.users.toggle-status', user.id));
         }
     };
@@ -237,7 +237,7 @@ export default function Index(props) {
                                                 <StatusBadge status={user.role === 'admin' ? 'Administrateur' : 'Assistant'} color={getRoleColor(user.role)} />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <StatusBadge status={user.email_verified_at ? 'Actif' : 'Inactif'} color={getStatusColor(user)} />
+                                                <StatusBadge status={user.is_active ? 'Actif' : 'Inactif'} color={user.is_active ? 'green' : 'gray'} />
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {new Date(user.created_at).toLocaleDateString('fr-FR')}
@@ -252,9 +252,9 @@ export default function Index(props) {
                                                     </button>
                                                     <button
                                                         onClick={() => handleToggleStatus(user)}
-                                                        className={user.email_verified_at ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}
+                                                        className={user.is_active ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}
                                                     >
-                                                        {user.email_verified_at ? 'Désactiver' : 'Activer'}
+                                                        {user.is_active ? 'Désactiver' : 'Activer'}
                                                     </button>
                                                     <button
                                                         onClick={() => openDeleteModal(user)}
