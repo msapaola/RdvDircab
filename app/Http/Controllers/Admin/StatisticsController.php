@@ -132,15 +132,13 @@ class StatisticsController extends Controller
         // Temps moyen de traitement par utilisateur
         $result = DB::table('appointments')
             ->selectRaw('
-                processed_by,
                 AVG(TIMESTAMPDIFF(MINUTE, created_at, processed_at)) as avg_minutes
             ')
             ->whereNotNull('processed_by')
             ->whereNotNull('processed_at')
-            ->groupBy('processed_by')
-            ->avg('avg_minutes');
+            ->first();
 
-        return round($result ?? 0, 1);
+        return round($result->avg_minutes ?? 0, 1);
     }
 
     private function getSatisfactionRate()
