@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::middleware(['auth', 'active', 'role:admin|assistant'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - Accessible par admin et assistant
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     

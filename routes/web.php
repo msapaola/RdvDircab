@@ -56,9 +56,9 @@ Route::get('/dashboard', function () {
         'appointments' => null,
         'filters' => [],
     ]);
-})->middleware(['auth', 'active', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -91,7 +91,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
@@ -115,7 +115,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\SettingsController;
 
-Route::middleware(['auth', 'active', 'role:admin|assistant'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin|assistant'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard - Accessible par admin et assistant
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
