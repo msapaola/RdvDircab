@@ -50,8 +50,8 @@ class UserController extends Controller
             'total' => User::count(),
             'admins' => User::where('role', 'admin')->count(),
             'assistants' => User::where('role', 'assistant')->count(),
-            'verified' => User::whereNotNull('email_verified_at')->count(),
-            'unverified' => User::whereNull('email_verified_at')->count(),
+            'actifs' => User::where('is_active', true)->count(),
+            'inactifs' => User::where('is_active', false)->count(),
         ];
 
         // Pagination simple comme dans les autres contrôleurs

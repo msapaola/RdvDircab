@@ -124,11 +124,11 @@ export default function Index(props) {
                             <div className="text-sm text-gray-600">Assistants</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-green-500">{safeStats.verified}</div>
+                            <div className="text-xl font-bold text-green-500">{safeStats.actifs}</div>
                             <div className="text-sm text-gray-600">Actifs</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-4 text-center">
-                            <div className="text-xl font-bold text-gray-400">{safeStats.unverified}</div>
+                            <div className="text-xl font-bold text-gray-400">{safeStats.inactifs}</div>
                             <div className="text-sm text-gray-600">Inactifs</div>
                         </div>
                     </div>
