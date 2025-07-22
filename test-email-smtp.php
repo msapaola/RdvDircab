@@ -27,11 +27,11 @@ echo "From Name: " . env('MAIL_FROM_NAME', 'Non défini') . "\n\n";
 echo "🧪 Test 1: Envoi d'email simple\n";
 try {
     Mail::raw('Ceci est un test d\'envoi d\'email depuis le système de rendez-vous du Cabinet du Gouverneur.', function($message) {
-        $message->to('test@example.com')
+        $message->to('msapaola@gmail.com')
                 ->subject('Test SMTP - Cabinet du Gouverneur')
                 ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
     });
-    echo "✅ Email simple envoyé avec succès\n";
+    echo "✅ Email simple envoyé avec succès à msapaola@gmail.com\n";
 } catch (Exception $e) {
     echo "❌ Erreur lors de l'envoi d'email simple: " . $e->getMessage() . "\n";
     Log::error('Test SMTP échoué - Email simple', [

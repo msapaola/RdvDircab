@@ -22,38 +22,16 @@ echo "MAIL_FROM_NAME: " . env('MAIL_FROM_NAME', 'Non défini') . "\n\n";
 echo "🔍 Test de connectivité SMTP...\n";
 
 try {
-    $transport = new \Swift_SmtpTransport(
-        env('MAIL_HOST'),
-        env('MAIL_PORT'),
-        env('MAIL_ENCRYPTION')
-    );
-    
-    $transport->setUsername(env('MAIL_USERNAME'));
-    $transport->setPassword(env('MAIL_PASSWORD'));
-    
-    // Test de connexion
-    $mailer = new \Swift_Mailer($transport);
-    $mailer->getTransport()->start();
-    
-    echo "✅ Connexion SMTP réussie !\n";
-    
-    // Test d'envoi d'email
+    // Utiliser la façade Mail de Laravel au lieu de Swift directement
     echo "📤 Test d'envoi d'email...\n";
     
-    $message = new \Swift_Message();
-    $message->setSubject('Test SMTP - Cabinet du Gouverneur');
-    $message->setFrom([env('MAIL_FROM_ADDRESS') => env('MAIL_FROM_NAME')]);
-    $message->setTo(['test@example.com' => 'Test User']);
-    $message->setBody('Ceci est un test d\'envoi d\'email depuis le système de rendez-vous du Cabinet du Gouverneur de Kinshasa.' . "\n\n" . 'Date: ' . date('Y-m-d H:i:s') . "\n" . 'Serveur: ' . env('MAIL_HOST'));
+    Mail::raw('Ceci est un test d\'envoi d\'email depuis le système de rendez-vous du Cabinet du Gouverneur de Kinshasa.' . "\n\n" . 'Date: ' . date('Y-m-d H:i:s') . "\n" . 'Serveur: ' . env('MAIL_HOST'), function($message) {
+        $message->to('msapaola@gmail.com')
+                ->subject('Test SMTP - Cabinet du Gouverneur')
+                ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
+    });
     
-    $result = $mailer->send($message);
-    
-    if ($result) {
-        echo "✅ Email envoyé avec succès !\n";
-        echo "📧 Nombre d'emails envoyés: $result\n";
-    } else {
-        echo "❌ Échec de l'envoi d'email\n";
-    }
+    echo "✅ Email envoyé avec succès à msapaola@gmail.com !\n";
     
 } catch (Exception $e) {
     echo "❌ Erreur SMTP: " . $e->getMessage() . "\n";
