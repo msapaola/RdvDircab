@@ -88,10 +88,33 @@ class AppointmentController extends Controller
         $oldStatus = $appointment->status;
         
         if ($appointment->accept(auth()->user())) {
-            // Envoyer la notification avec le lien de suivi
-            $appointment->notify(new AppointmentStatusUpdate($appointment, $oldStatus));
-            
-            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Un email avec le lien de suivi a été envoyé au demandeur.');
+            try {
+                // Envoyer la notification avec le lien de suivi
+                $appointment->notify(new AppointmentStatusUpdate($appointment, $oldStatus));
+                
+                // Log de l'envoi d'email
+                \Log::info('Email de confirmation envoyé avec succès', [
+                    'appointment_id' => $appointment->id,
+                    'recipient_email' => $appointment->email,
+                    'recipient_name' => $appointment->name,
+                    'tracking_url' => $appointment->tracking_url,
+                    'processed_by' => auth()->user()->name,
+                    'timestamp' => now()->toDateTimeString(),
+                ]);
+                
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Un email avec le lien de suivi a été envoyé au demandeur.');
+            } catch (\Exception $e) {
+                // Log de l'erreur d'envoi d'email
+                \Log::error('Erreur lors de l\'envoi de l\'email de confirmation', [
+                    'appointment_id' => $appointment->id,
+                    'recipient_email' => $appointment->email,
+                    'error_message' => $e->getMessage(),
+                    'error_trace' => $e->getTraceAsString(),
+                    'timestamp' => now()->toDateTimeString(),
+                ]);
+                
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès, mais l\'envoi de l\'email a échoué. Veuillez contacter le demandeur manuellement.');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');
