@@ -45,6 +45,7 @@ export default function Index({ users, stats, filters }) {
 
     // Fonctions
     const handleFilter = () => {
+        console.log('handleFilter', filterForm.data);
         filterForm.get(route('admin.users.index'));
     };
     const handleReset = () => {
@@ -52,6 +53,7 @@ export default function Index({ users, stats, filters }) {
         router.get(route('admin.users.index'));
     };
     const handleCreate = () => {
+        console.log('handleCreate', createForm.data);
         createForm.post(route('admin.users.store'), {
             onSuccess: () => {
                 setShowCreateModal(false);
@@ -60,6 +62,7 @@ export default function Index({ users, stats, filters }) {
         });
     };
     const handleEdit = () => {
+        console.log('handleEdit', editForm.data, selectedUser);
         editForm.put(route('admin.users.update', selectedUser.id), {
             onSuccess: () => {
                 setShowEditModal(false);
@@ -69,6 +72,7 @@ export default function Index({ users, stats, filters }) {
         });
     };
     const handleDelete = () => {
+        console.log('handleDelete', selectedUser);
         router.delete(route('admin.users.destroy', selectedUser.id), {
             onSuccess: () => {
                 setShowDeleteModal(false);
@@ -77,11 +81,13 @@ export default function Index({ users, stats, filters }) {
         });
     };
     const handleToggleStatus = (user) => {
+        console.log('handleToggleStatus', user);
         if (confirm(`Êtes-vous sûr de vouloir ${user.email_verified_at ? 'désactiver' : 'activer'} ce compte ?`)) {
             router.post(route('admin.users.toggle-status', user.id));
         }
     };
     const openEditModal = (user) => {
+        console.log('openEditModal', user);
         setSelectedUser(user);
         editForm.setData({
             name: user.name,
@@ -93,6 +99,7 @@ export default function Index({ users, stats, filters }) {
         setShowEditModal(true);
     };
     const openDeleteModal = (user) => {
+        console.log('openDeleteModal', user);
         setSelectedUser(user);
         setShowDeleteModal(true);
     };
@@ -291,6 +298,7 @@ export default function Index({ users, stats, filters }) {
                                                             : 'bg-white text-gray-700 hover:bg-gray-50'
                                                     }`}
                                                     dangerouslySetInnerHTML={{ __html: link.label }}
+                                                    onClick={() => console.log('pagination click', link)}
                                                 />
                                             ) : (
                                                 <span
