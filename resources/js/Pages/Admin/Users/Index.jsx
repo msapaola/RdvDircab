@@ -245,20 +245,23 @@ export default function Index({ users, stats, filters }) {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-2">
                                                     <button
-                                                        onClick={() => openEditModal(user)}
+                                                        onClick={() => user && openEditModal(user)}
                                                         className="text-green-600 hover:text-green-900"
+                                                        disabled={!user}
                                                     >
                                                         Modifier
                                                     </button>
                                                     <button
-                                                        onClick={() => handleToggleStatus(user)}
+                                                        onClick={() => user && handleToggleStatus(user)}
                                                         className={user.email_verified_at ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'}
+                                                        disabled={!user}
                                                     >
                                                         {user.email_verified_at ? 'Désactiver' : 'Activer'}
                                                     </button>
                                                     <button
-                                                        onClick={() => openDeleteModal(user)}
+                                                        onClick={() => user && openDeleteModal(user)}
                                                         className="text-red-600 hover:text-red-900"
+                                                        disabled={!user}
                                                     >
                                                         Supprimer
                                                     </button>
@@ -278,16 +281,24 @@ export default function Index({ users, stats, filters }) {
                                     </div>
                                     <div className="flex space-x-2">
                                         {safeUsers.links.map((link, index) => (
-                                            <Link
-                                                key={index}
-                                                href={link.url}
-                                                className={`px-3 py-2 text-sm rounded-md ${
-                                                    link.active
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                            />
+                                            link.url ? (
+                                                <Link
+                                                    key={index}
+                                                    href={link.url}
+                                                    className={`px-3 py-2 text-sm rounded-md ${
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : 'bg-white text-gray-700 hover:bg-gray-50'
+                                                    }`}
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
+                                            ) : (
+                                                <span
+                                                    key={index}
+                                                    className="px-3 py-2 text-sm rounded-md opacity-50 cursor-not-allowed bg-white text-gray-400"
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
+                                            )
                                         ))}
                                     </div>
                                 </div>
