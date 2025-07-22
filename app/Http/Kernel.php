@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
         'check.active' => \App\Http\Middleware\CheckActive::class,
         'check.role' => \App\Http\Middleware\CheckRole::class,
         'test.middleware' => \App\Http\Middleware\TestMiddleware::class,
+        'auth.and.active' => \App\Http\Middleware\AuthAndActive::class,
     ];
 } 
