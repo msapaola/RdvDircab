@@ -90,14 +90,10 @@ const DropdownLink = ({ className = '', children, method, as, ...props }) => {
     // Filtrer les props pour éviter de passer method/as si ils sont null/undefined
     const linkProps = { ...props };
     
-    // Vérification défensive pour method et as
-    const safeMethod = method && typeof method === 'string' ? method : null;
-    const safeAs = as && typeof as === 'string' ? as : null;
-    
     // Si method et as sont fournis et valides, les ajouter aux props
-    if (safeMethod && safeAs) {
-        linkProps.method = safeMethod;
-        linkProps.as = safeAs;
+    if (method && as && typeof method === 'string' && typeof as === 'string') {
+        linkProps.method = method;
+        linkProps.as = as;
     }
 
     return (

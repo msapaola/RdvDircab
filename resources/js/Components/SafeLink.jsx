@@ -18,17 +18,13 @@ export default function SafeLink({
         );
     }
 
-    // Vérification défensive pour method et as
-    const safeMethod = method && typeof method === 'string' ? method : null;
-    const safeAs = as && typeof as === 'string' ? as : null;
-
     // Si method et as sont fournis et valides, les utiliser
-    if (safeMethod && safeAs) {
+    if (method && as && typeof method === 'string' && typeof as === 'string') {
         return (
             <Link
                 href={href}
-                method={safeMethod}
-                as={safeAs}
+                method={method}
+                as={as}
                 className={className}
                 {...props}
             >

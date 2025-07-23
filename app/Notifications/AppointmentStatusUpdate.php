@@ -33,15 +33,6 @@ class AppointmentStatusUpdate extends Notification implements ShouldQueue
         $trackingUrl = route('appointments.tracking', $this->appointment->secure_token);
         $status = $this->appointment->formatted_status;
         
-        // Log de la préparation de l'email
-        \Log::info('Préparation de l\'email de notification', [
-            'appointment_id' => $this->appointment->id,
-            'recipient_email' => $notifiable->email ?? $this->appointment->email,
-            'status' => $this->appointment->status,
-            'tracking_url' => $trackingUrl,
-            'timestamp' => now()->toDateTimeString(),
-        ]);
-        
         $mailMessage = (new MailMessage)
             ->subject('Mise à jour de votre demande de rendez-vous - Cabinet du Gouverneur')
             ->greeting('Bonjour ' . $this->appointment->name . ',');
