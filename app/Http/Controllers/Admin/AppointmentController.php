@@ -85,7 +85,10 @@ class AppointmentController extends Controller
     public function accept(Request $request, Appointment $appointment)
     {
         if ($appointment->accept(auth()->user())) {
-            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès.');
+            // Envoyer la notification au demandeur
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');

@@ -18,7 +18,7 @@ export default function Statistics({ stats, appointmentsByMonth, appointmentsByP
                     </div>
                 </header>
 
-                                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Période de sélection */}
                     <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
