@@ -7,7 +7,7 @@ RewriteRule (.*) - [L]
 
 # Rediriger les assets vers le dossier public
 RewriteRule ^build/(.*)$ public/build/$1 [L]
+RewriteRule ^images/(.*)$ public/images/$1 [L]
 
-# Other rules
 RewriteRule ^ index.php [L]
 
