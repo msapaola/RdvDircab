@@ -1,0 +1,1 @@
+import{j as o}from"./app-GzY6xfbG.js";function e(a){return o.jsx("img",{...a,src:"/images/logohvk.webp",alt:"Logo Cabinet du Gouverneur de Kinshasa",className:a.className||"h-9 w-auto"})}export{e as A};
