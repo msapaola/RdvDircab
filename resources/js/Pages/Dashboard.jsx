@@ -91,9 +91,7 @@ export default function Dashboard({ stats = {}, nextAppointments = [], statsByDa
                                             <td className="py-2">{rdv.preferred_time}</td>
                                             <td className="py-2">{rdv.name}</td>
                                             <td className="py-2">{rdv.subject}</td>
-                                            <td className="py-2">
-                                                <StatusBadge status={rdv.formatted_status} color="green" />
-                                            </td>
+                                            <td className="py-2">{rdv.formatted_status}</td>
                                         </tr>
                                     ))}
                                 </tbody>
