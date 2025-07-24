@@ -173,8 +173,12 @@ class Appointment extends Model
             $appointmentDateTime = $this->preferred_date->setTimeFrom($this->preferred_time);
             return now()->isBefore($appointmentDateTime->subDay());
         }
-        
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_REJECTED]);
+        return false;
+    }
+
+    public function getCanBeCanceledByRequesterAttribute(): bool
+    {
+        return $this->canBeCanceledByRequester();
     }
 
     /**
@@ -267,7 +271,7 @@ class Appointment extends Model
      */
     public function cancel(User $user, string $reason = null): bool
     {
-        if (!in_array($this->status, [self::STATUS_PENDING, self::STATUS_ACCEPTED])) {
+        if ($this->status !== self::STATUS_ACCEPTED) {
             return false;
         }
 

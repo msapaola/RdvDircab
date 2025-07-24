@@ -231,7 +231,11 @@ class PublicController extends Controller
 
         $appointment->cancelByRequester();
 
-        // Envoyer notification à l'administration (sera implémenté plus tard)
+        // Envoyer une notification d'annulation au demandeur
+        \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+            ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+
+        // Envoyer notification à l'administration (optionnel)
         // Mail::to(config('mail.admin_email'))->send(new AppointmentCancellation($appointment));
 
         return response()->json([
