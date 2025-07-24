@@ -8,12 +8,6 @@ import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 
 export default function Dashboard({ stats, nextAppointments, statsByDay, appointments, filters }) {
-    // Vérifications défensives pour éviter les erreurs null/undefined
-    const safeStats = stats || {};
-    const safeNextAppointments = nextAppointments || [];
-    const safeStatsByDay = statsByDay || [];
-    const safeAppointments = appointments || { data: [], links: [], total: 0, from: 0, to: 0 };
-    const safeFilters = filters || {};
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -22,13 +16,13 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
     const [cancelReason, setCancelReason] = useState('');
 
     const filterForm = useForm({
-        status: safeFilters.status || '',
-        priority: safeFilters.priority || '',
-        date_from: safeFilters.date_from || '',
-        date_to: safeFilters.date_to || '',
-        search: safeFilters.search || '',
-        sort_by: safeFilters.sort_by || 'created_at',
-        sort_order: safeFilters.sort_order || 'desc',
+        status: filters?.status || '',
+        priority: filters?.priority || '',
+        date_from: filters?.date_from || '',
+        date_to: filters?.date_to || '',
+        search: filters?.search || '',
+        sort_by: filters?.sort_by || 'created_at',
+        sort_order: filters?.sort_order || 'desc',
     });
 
     const updateForm = useForm({
@@ -141,27 +135,27 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                     {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-orange-500">{safeStats.pending || 0}</div>
+                            <div className="text-2xl font-bold text-orange-500">{stats.pending}</div>
                             <div className="text-sm text-gray-600 mt-2">En attente</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-green-500">{safeStats.accepted || 0}</div>
+                            <div className="text-2xl font-bold text-green-500">{stats.accepted}</div>
                             <div className="text-sm text-gray-600 mt-2">Acceptés</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-red-500">{safeStats.rejected || 0}</div>
+                            <div className="text-2xl font-bold text-red-500">{stats.rejected}</div>
                             <div className="text-sm text-gray-600 mt-2">Refusés</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-gray-400">{safeStats.canceled || 0}</div>
+                            <div className="text-2xl font-bold text-gray-400">{stats.canceled}</div>
                             <div className="text-sm text-gray-600 mt-2">Annulés</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-blue-500">{safeStats.completed || 0}</div>
+                            <div className="text-2xl font-bold text-blue-500">{stats.completed}</div>
                             <div className="text-sm text-gray-600 mt-2">Terminés</div>
                         </div>
                         <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <div className="text-2xl font-bold text-gray-500">{safeStats.expired || 0}</div>
+                            <div className="text-2xl font-bold text-gray-500">{stats.expired}</div>
                             <div className="text-sm text-gray-600 mt-2">Expirés</div>
                         </div>
                     </div>
@@ -175,7 +169,7 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                 series: [
                                     {
                                         name: 'Rendez-vous',
-                                        data: safeStatsByDay.map(item => ({
+                                        data: (statsByDay || []).map(item => ({
                                             x: new Date(item.day).getTime(),
                                             y: item.count
                                         }))
@@ -285,11 +279,11 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-lg font-semibold text-gray-900">Gestion des rendez-vous</h2>
                             <div className="text-sm text-gray-500">
-                                {safeAppointments.total ? `${safeAppointments.total} rendez-vous trouvés` : 'Aucun rendez-vous'}
+                                {appointments && appointments.total ? `${appointments.total} rendez-vous trouvés` : 'Aucun rendez-vous'}
                             </div>
                         </div>
                         
-                        {safeAppointments.data && safeAppointments.data.length > 0 ? (
+                        {appointments && appointments.data && appointments.data.length > 0 ? (
                             <>
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full divide-y divide-gray-200">
@@ -316,7 +310,7 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {safeAppointments.data.map((appointment) => (
+                                            {appointments.data.map((appointment) => (
                                                 <tr key={appointment.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <div>
@@ -431,31 +425,25 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                 </div>
 
                                 {/* Pagination */}
-                                {safeAppointments.links && safeAppointments.links.length > 3 && (
+                                {appointments.links && appointments.links.length > 3 && (
                                     <div className="mt-6 flex items-center justify-between">
                                         <div className="text-sm text-gray-700">
-                                            Affichage de {appointments.from || 0} à {appointments.to || 0} sur {appointments.total || 0} résultats
+                                            Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
                                         </div>
                                         <div className="flex space-x-2">
-                                            {safeAppointments.links.map((link, index) => (
-                                                link.url ? (
-                                                    <Link
-                                                        key={index}
-                                                        href={link.url}
-                                                        className={`px-3 py-2 text-sm rounded-md ${
-                                                            link.active
-                                                                ? 'bg-blue-500 text-white'
-                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                                        }`}
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        key={index}
-                                                        className="px-3 py-2 text-sm rounded-md bg-gray-100 text-gray-400 cursor-not-allowed"
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                    />
-                                                )
+                                            {appointments.links.map((link, index) => (
+                                                <Link
+                                                    key={index}
+                                                    href={link.url}
+                                                    className={`px-3 py-2 text-sm rounded-md ${
+                                                        link.active
+                                                            ? 'bg-blue-500 text-white'
+                                                            : link.url
+                                                            ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                    dangerouslySetInnerHTML={{ __html: link.label }}
+                                                />
                                             ))}
                                         </div>
                                     </div>
@@ -472,7 +460,7 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                     {/* Prochains rendez-vous acceptés */}
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Prochains rendez-vous acceptés</h2>
-                        {safeNextAppointments && safeNextAppointments.length > 0 ? (
+                        {nextAppointments && nextAppointments.length > 0 ? (
                             <table className="min-w-full text-sm">
                                 <thead>
                                     <tr>
@@ -484,7 +472,7 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {safeNextAppointments.map((rdv) => (
+                                    {nextAppointments.map((rdv) => (
                                         <tr key={rdv.id} className="border-b">
                                             <td className="py-2">{rdv.preferred_date}</td>
                                             <td className="py-2">{rdv.preferred_time}</td>
