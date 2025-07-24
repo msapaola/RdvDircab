@@ -27,6 +27,11 @@ class AppointmentStatusUpdate extends Notification
         return ['mail'];
     }
 
+    public function logo($notifiable)
+    {
+        return url('/images/logohvk.webp');
+    }
+
     public function toMail($notifiable)
     {
         $trackingUrl = route('appointments.tracking', $this->appointment->secure_token);
@@ -34,7 +39,6 @@ class AppointmentStatusUpdate extends Notification
         
         $mailMessage = (new MailMessage)
             ->subject('Mise à jour de votre demande de rendez-vous - Cabinet du Gouverneur')
-            ->logo(public_path('images/logohvk.webp'))
             ->greeting('Bonjour ' . $this->appointment->name . ',');
 
         switch ($this->appointment->status) {
