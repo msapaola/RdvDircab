@@ -34,6 +34,7 @@ class AppointmentStatusUpdate extends Notification
         
         $mailMessage = (new MailMessage)
             ->subject('Mise à jour de votre demande de rendez-vous - Cabinet du Gouverneur')
+            ->logo(public_path('images/logohvk.webp'))
             ->greeting('Bonjour ' . $this->appointment->name . ',');
 
         switch ($this->appointment->status) {
