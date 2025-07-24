@@ -101,7 +101,9 @@ class AppointmentController extends Controller
         ]);
 
         if ($appointment->reject(auth()->user(), $request->rejection_reason)) {
-            return redirect()->back()->with('success', 'Rendez-vous refusé avec succès.');
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible de refuser ce rendez-vous.');
@@ -114,7 +116,9 @@ class AppointmentController extends Controller
         ]);
 
         if ($appointment->cancel(auth()->user(), $request->admin_notes)) {
-            return redirect()->back()->with('success', 'Rendez-vous annulé avec succès.');
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible d\'annuler ce rendez-vous.');
@@ -159,7 +163,9 @@ class AppointmentController extends Controller
     public function complete(Request $request, Appointment $appointment)
     {
         if ($appointment->markAsCompleted(auth()->user())) {
-            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé.');
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible de marquer ce rendez-vous comme terminé.');
