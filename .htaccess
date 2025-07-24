@@ -5,4 +5,9 @@ RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} deleteme\.\w+\.php
 RewriteRule (.*) - [L] 
 
+# Rediriger les assets vers le dossier public
+RewriteRule ^build/(.*)$ public/build/$1 [L]
+
+# Other rules
 RewriteRule ^ index.php [L]
+
