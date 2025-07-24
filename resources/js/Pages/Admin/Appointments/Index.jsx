@@ -626,22 +626,24 @@ export default function Index({ appointments, stats, filters }) {
                                                             >
                                                                     ❌ Refuser
                                                             </button>
-                                                            <button
-                                                                onClick={() => openCancelModal(appointment)}
-                                                                className="text-gray-600 hover:text-gray-900"
-                                                                >
-                                                                    🚫 Annuler
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        
-                                                        {appointment.status === 'accepted' && (
+                                                        </>
+                                                    )}
+                                                    
+                                                    {appointment.status === 'accepted' && (
+                                                        <>
                                                             <button
                                                                 onClick={() => handleComplete(appointment)}
                                                                 className="text-blue-600 hover:text-blue-900"
                                                             >
                                                                 ✅ Terminer
                                                             </button>
+                                                            <button
+                                                                onClick={() => openCancelModal(appointment)}
+                                                                className="text-gray-600 hover:text-gray-900"
+                                                            >
+                                                                🚫 Annuler
+                                                            </button>
+                                                        </>
                                                     )}
                                                 </div>
                                             </td>
