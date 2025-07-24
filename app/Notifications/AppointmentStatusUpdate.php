@@ -36,6 +36,10 @@ class AppointmentStatusUpdate extends Notification
     {
         $trackingUrl = route('appointments.tracking', $this->appointment->secure_token);
         $status = $this->appointment->formatted_status;
+
+        // Formatage lisible des dates et heures
+        $date = $this->appointment->preferred_date ? \Carbon\Carbon::parse($this->appointment->preferred_date)->format('d/m/Y') : '';
+        $heure = $this->appointment->preferred_time ? substr($this->appointment->preferred_time, 0, 5) : '';
         
         $mailMessage = (new MailMessage)
             ->subject('Mise à jour de votre demande de rendez-vous - Cabinet du Gouverneur')
@@ -48,8 +52,8 @@ class AppointmentStatusUpdate extends Notification
                     ->line('')
                     ->line('**Détails du rendez-vous :**')
                     ->line('• Objet : ' . $this->appointment->subject)
-                    ->line('• Date : ' . $this->appointment->preferred_date)
-                    ->line('• Heure : ' . $this->appointment->preferred_time)
+                    ->line('• Date : ' . $date)
+                    ->line('• Heure : ' . $heure)
                     ->line('• Statut : Accepté')
                     ->line('')
                     ->line('**Instructions importantes :**')
@@ -66,7 +70,7 @@ class AppointmentStatusUpdate extends Notification
                     ->line('')
                     ->line('**Détails de la demande :**')
                     ->line('• Objet : ' . $this->appointment->subject)
-                    ->line('• Date souhaitée : ' . $this->appointment->preferred_date)
+                    ->line('• Date souhaitée : ' . $date)
                     ->line('• Statut : Refusé')
                     ->line('')
                     ->line('**Raison du refus :**')
@@ -83,7 +87,7 @@ class AppointmentStatusUpdate extends Notification
                     ->line('')
                     ->line('**Détails de la demande :**')
                     ->line('• Objet : ' . $this->appointment->subject)
-                    ->line('• Date souhaitée : ' . $this->appointment->preferred_date)
+                    ->line('• Date souhaitée : ' . $date)
                     ->line('• Statut : Annulé')
                     ->line('')
                     ->line('Vous pouvez soumettre une nouvelle demande à tout moment.')
@@ -96,7 +100,7 @@ class AppointmentStatusUpdate extends Notification
                     ->line('')
                     ->line('**Détails du rendez-vous :**')
                     ->line('• Objet : ' . $this->appointment->subject)
-                    ->line('• Date : ' . $this->appointment->preferred_date)
+                    ->line('• Date : ' . $date)
                     ->line('• Statut : Terminé')
                     ->line('')
                     ->line('Nous vous remercions pour votre visite.')
