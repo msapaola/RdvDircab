@@ -78,7 +78,7 @@ class DashboardController extends Controller
             'nextAppointments' => $nextAppointments,
             'statsByDay' => $statsByDay,
             'appointments' => $appointments,
-            'filters' => $request->only(['status', 'priority', 'date_from', 'date_to', 'search', 'sort_by', 'sort_order']),
+            'filters' => (object) $request->only(['status', 'priority', 'date_from', 'date_to', 'search', 'sort_by', 'sort_order']),
         ]);
     }
 }

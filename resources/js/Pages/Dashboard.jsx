@@ -7,7 +7,7 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
 import DashboardMenu from '@/Components/DashboardMenu';
 
-export default function Dashboard({ stats, nextAppointments, statsByDay, appointments, filters }) {
+export default function Dashboard({ stats = {}, nextAppointments = [], statsByDay = [], appointments = null, filters = {} }) {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -169,10 +169,10 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                 series: [
                                     {
                                         name: 'Rendez-vous',
-                                        data: (statsByDay || []).map(item => ({
+                                        data: Array.isArray(statsByDay) ? statsByDay.map(item => ({
                                             x: new Date(item.day).getTime(),
                                             y: item.count
-                                        }))
+                                        })) : []
                                     }
                                 ]
                             }}
@@ -425,25 +425,31 @@ export default function Dashboard({ stats, nextAppointments, statsByDay, appoint
                                 </div>
 
                                 {/* Pagination */}
-                                {appointments.links && appointments.links.length > 3 && (
+                                {appointments && appointments.links && appointments.links.length > 3 && (
                                     <div className="mt-6 flex items-center justify-between">
                                         <div className="text-sm text-gray-700">
                                             Affichage de {appointments.from} à {appointments.to} sur {appointments.total} résultats
                                         </div>
                                         <div className="flex space-x-2">
                                             {appointments.links.map((link, index) => (
-                                                <Link
-                                                    key={index}
-                                                    href={link.url}
-                                                    className={`px-3 py-2 text-sm rounded-md ${
-                                                        link.active
-                                                            ? 'bg-blue-500 text-white'
-                                                            : link.url
-                                                            ? 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                    }`}
-                                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                                />
+                                                link.url ? (
+                                                    <Link
+                                                        key={index}
+                                                        href={link.url}
+                                                        className={`px-3 py-2 text-sm rounded-md ${
+                                                            link.active
+                                                                ? 'bg-blue-500 text-white'
+                                                                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                                                        }`}
+                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                    />
+                                                ) : (
+                                                    <span
+                                                        key={index}
+                                                        className="px-3 py-2 text-sm rounded-md bg-gray-100 text-gray-400 cursor-not-allowed"
+                                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                                    />
+                                                )
                                             ))}
                                         </div>
                                     </div>
