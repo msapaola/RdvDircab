@@ -18,9 +18,13 @@ export default function Tracking({ appointment, activities }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
                 },
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const result = await response.json();
 
@@ -31,7 +35,8 @@ export default function Tracking({ appointment, activities }) {
                 alert(result.message || 'Une erreur est survenue');
             }
         } catch (error) {
-            alert('Une erreur de connexion est survenue');
+            console.error('Erreur lors de l\'annulation:', error);
+            alert(`Erreur lors de l'annulation: ${error.message}`);
         } finally {
             setIsCanceling(false);
             setShowCancelModal(false);
