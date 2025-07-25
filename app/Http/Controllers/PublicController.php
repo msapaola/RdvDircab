@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\BlockedSlot;
+use App\Notifications\AppointmentStatusUpdate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -237,7 +238,7 @@ class PublicController extends Controller
 
         // Envoyer une notification d'annulation au demandeur
         \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-            ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            ->notify(new AppointmentStatusUpdate($appointment));
 
         // Envoyer notification à l'administration (optionnel)
         // Mail::to(config('mail.admin_email'))->send(new AppointmentCancellation($appointment));
