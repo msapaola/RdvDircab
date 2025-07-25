@@ -85,10 +85,16 @@ class AppointmentController extends Controller
     public function accept(Request $request, Appointment $appointment)
     {
         if ($appointment->accept(auth()->user())) {
-            // Envoyer la notification au demandeur
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
+            // Envoyer la notification au demandeur avec gestion d'erreur
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                // Log l'erreur mais ne pas faire échouer l'action principale
+                \Log::error('Erreur envoi notification email: ' . $e->getMessage());
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. (Erreur lors de l\'envoi de l\'email de notification)');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');
@@ -99,28 +105,38 @@ class AppointmentController extends Controller
         $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
-
+        
         if ($appointment->reject(auth()->user(), $request->rejection_reason)) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi notification email: ' . $e->getMessage());
+                return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. (Erreur lors de l\'envoi de l\'email de notification)');
+            }
         }
-
+        
         return redirect()->back()->with('error', 'Impossible de refuser ce rendez-vous.');
     }
 
     public function cancel(Request $request, Appointment $appointment)
     {
         $request->validate([
-            'admin_notes' => 'required|string|max:500',
+            'cancel_reason' => 'required|string|max:500',
         ]);
-
-        if ($appointment->cancel(auth()->user(), $request->admin_notes)) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
+        
+        if ($appointment->cancel(auth()->user(), $request->cancel_reason)) {
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi notification email: ' . $e->getMessage());
+                return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. (Erreur lors de l\'envoi de l\'email de notification)');
+            }
         }
-
+        
         return redirect()->back()->with('error', 'Impossible d\'annuler ce rendez-vous.');
     }
 
@@ -163,11 +179,16 @@ class AppointmentController extends Controller
     public function complete(Request $request, Appointment $appointment)
     {
         if ($appointment->markAsCompleted(auth()->user())) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi notification email: ' . $e->getMessage());
+                return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. (Erreur lors de l\'envoi de l\'email de notification)');
+            }
         }
-
+        
         return redirect()->back()->with('error', 'Impossible de marquer ce rendez-vous comme terminé.');
     }
 
