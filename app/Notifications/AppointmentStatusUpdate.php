@@ -34,6 +34,7 @@ class AppointmentStatusUpdate extends Notification
 
     public function toMail($notifiable)
     {
+        \Carbon\Carbon::setLocale('fr');
         $trackingUrl = route('appointments.tracking', $this->appointment->secure_token);
         $status = $this->appointment->formatted_status;
 
