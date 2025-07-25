@@ -207,19 +207,19 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 {/* Header */}
                 <header className="bg-white shadow-sm border-b">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex justify-between items-center py-6">
-                            <div className="flex items-center gap-4">
-                                <ApplicationLogo className="h-16 w-auto" />
+                        <div className="flex flex-col sm:flex-row justify-between items-center py-4 sm:py-6 gap-4">
+                            <div className="flex items-center gap-3 sm:gap-4">
+                                <ApplicationLogo className="h-12 sm:h-16 w-auto" />
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500">
+                            <div className="text-center sm:text-right">
+                                <p className="text-xs sm:text-sm text-gray-500">
                                     Horaires d'ouverture
                                 </p>
-                                <p className="text-sm font-medium text-gray-900">
-                                    Lundi - Vendredi: 8h00 - 17h00
+                                <p className="text-xs sm:text-sm font-medium text-gray-900">
+                                    Lun-Ven: 8h00-17h00
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                    Pause déjeuner: 12h00 - 14h00
+                                    Pause: 12h00-14h00
                                 </p>
                             </div>
                         </div>
@@ -227,64 +227,64 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 </header>
 
                 {/* Titre principal déplacé sous le header */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-4 text-center">
-                    <h1 className="text-3xl font-bold text-gray-900">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 mb-4 text-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                         Cabinet du Gouverneur de Kinshasa
                     </h1>
-                    <p className="text-gray-600 mt-2">
+                    <p className="text-sm sm:text-base text-gray-600 mt-2">
                         Demande de rendez-vous en ligne
                     </p>
                 </div>
 
                 {/* Main Content */}
-                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
                     {/* Instructions */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-                        <h2 className="text-lg font-semibold text-blue-900 mb-2">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+                        <h2 className="text-base sm:text-lg font-semibold text-blue-900 mb-3 sm:mb-2">
                             Comment demander un rendez-vous ?
                         </h2>
-                        <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-800">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm text-blue-800">
                             <div className="flex items-start">
-                                <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                                <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     1
                                 </span>
-                                <span>Consultez le calendrier ci-dessous et sélectionnez un créneau disponible (en vert)</span>
+                                <span>Sélectionnez un créneau vert disponible dans le calendrier</span>
                             </div>
                             <div className="flex items-start">
-                                <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                                <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     2
                                 </span>
-                                <span>Remplissez le formulaire avec vos informations et l'objet de votre visite</span>
+                                <span>Remplissez le formulaire avec vos informations</span>
                             </div>
-                            <div className="flex items-start">
-                                <span className="bg-blue-200 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                            <div className="flex items-start sm:col-span-2 lg:col-span-1">
+                                <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     3
                                 </span>
-                                <span>Recevez une confirmation par email avec un lien de suivi unique</span>
+                                <span>Recevez une confirmation par email avec lien de suivi</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Calendar */}
                     <div className="bg-white rounded-lg shadow-sm border">
-                        <div className="p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">
+                        <div className="p-4 sm:p-6 border-b">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                                 Calendrier des créneaux disponibles
                             </h2>
-                            <p className="text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 mt-1">
                                 Cliquez sur un créneau vert pour demander un rendez-vous
                             </p>
                         </div>
                         
-                        <div className="p-6">
+                        <div className="p-2 sm:p-6">
                             <FullCalendar
                                 ref={calendarRef}
                                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                                 initialView="timeGridWeek"
                                 headerToolbar={{
-                                    left: 'prev,next today',
+                                    left: 'prev,next',
                                     center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                    right: 'today'
                                 }}
                                 locale={frLocale}
                                 selectable={true}
@@ -320,24 +320,33 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                                 }}
                                 slotEventOverlap={false}
                                 eventOverlap={false}
+                                dayHeaderFormat={{
+                                    weekday: 'short',
+                                    day: 'numeric',
+                                    month: 'short'
+                                }}
+                                titleFormat={{
+                                    month: 'long',
+                                    year: 'numeric'
+                                }}
                             />
                         </div>
                     </div>
 
                     {/* Legend */}
-                    <div className="mt-6 bg-white rounded-lg shadow-sm border p-4">
+                    <div className="mt-4 sm:mt-6 bg-white rounded-lg shadow-sm border p-4">
                         <h3 className="text-sm font-medium text-gray-900 mb-3">Légende</h3>
-                        <div className="flex flex-wrap gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                             <div className="flex items-center">
-                                <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                                <span>C Créneau disponible</span>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded mr-2 flex-shrink-0"></div>
+                                <span>Créneau disponible</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                                <span>C Créneau indisponible</span>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded mr-2 flex-shrink-0"></div>
+                                <span>Créneau indisponible</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-4 h-4 bg-gray-300 rounded mr-2"></div>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gray-300 rounded mr-2 flex-shrink-0"></div>
                                 <span>Weekend / Hors horaires</span>
                             </div>
                         </div>
