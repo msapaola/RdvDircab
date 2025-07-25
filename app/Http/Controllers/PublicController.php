@@ -59,11 +59,7 @@ class PublicController extends Controller
             ->get();
 
         return Inertia::render('Public/Tracking', [
-            'appointment' => $appointment->toArray() + [
-                'can_be_canceled_by_requester' => $appointment->canBeCanceledByRequester(),
-                'formatted_status' => $appointment->formatted_status,
-                'formatted_priority' => $appointment->formatted_priority,
-            ],
+            'appointment' => $appointment,
             'activities' => $activities,
         ]);
     }

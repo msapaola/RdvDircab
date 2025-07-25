@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notification;
 
 class AppointmentStatusUpdate extends Notification
 {
-    //use Queueable;
+    use Queueable;
 
     protected $appointment;
     protected $oldStatus;
