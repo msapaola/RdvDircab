@@ -210,14 +210,6 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         <div className="flex justify-between items-center py-6">
                             <div className="flex items-center gap-4">
                                 <ApplicationLogo className="h-16 w-auto" />
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900">
-                                        Cabinet du Gouverneur de Kinshasa
-                                    </h1>
-                                    <p className="text-gray-600 mt-2">
-                                        Demande de rendez-vous en ligne
-                                    </p>
-                                </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm text-gray-500">
@@ -233,6 +225,16 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         </div>
                     </div>
                 </header>
+
+                {/* Titre principal déplacé sous le header */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-4 text-center">
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        Cabinet du Gouverneur de Kinshasa
+                    </h1>
+                    <p className="text-gray-600 mt-2">
+                        Demande de rendez-vous en ligne
+                    </p>
+                </div>
 
                 {/* Main Content */}
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

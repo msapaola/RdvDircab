@@ -37,9 +37,9 @@ class AppointmentStatusUpdate extends Notification
         $trackingUrl = route('appointments.tracking', $this->appointment->secure_token);
         $status = $this->appointment->formatted_status;
 
-        // Formatage lisible des dates et heures
-        $date = $this->appointment->preferred_date ? \Carbon\Carbon::parse($this->appointment->preferred_date)->format('d/m/Y') : '';
-        $heure = $this->appointment->preferred_time ? substr($this->appointment->preferred_time, 0, 5) : '';
+        // Formatage lisible des dates et heures en français
+        $date = $this->appointment->preferred_date ? \Carbon\Carbon::parse($this->appointment->preferred_date)->translatedFormat('d F Y') : '';
+        $heure = $this->appointment->preferred_time ? (\Carbon\Carbon::parse($this->appointment->preferred_time)->format('H\hi')) : '';
         
         $mailMessage = (new MailMessage)
             ->subject('Mise à jour de votre demande de rendez-vous - Cabinet du Gouverneur')
