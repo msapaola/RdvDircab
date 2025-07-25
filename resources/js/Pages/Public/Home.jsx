@@ -9,6 +9,7 @@ import Modal from '@/Components/UI/Modal';
 import AppointmentForm from '@/Components/Forms/AppointmentForm';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import ApplicationLogo from '@/Components/ApplicationLogo';
 
 export default function Home({ availableSlots, blockedSlots, businessHours, workingDays }) {
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -207,13 +208,16 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 <header className="bg-white shadow-sm border-b">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center py-6">
-                            <div>
-                                <h1 className="text-3xl font-bold text-gray-900">
-                                    Cabinet du Gouverneur de Kinshasa
-                                </h1>
-                                <p className="text-gray-600 mt-2">
-                                    Demande de rendez-vous en ligne
-                                </p>
+                            <div className="flex items-center gap-4">
+                                <ApplicationLogo className="h-16 w-auto" />
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-900">
+                                        Cabinet du Gouverneur de Kinshasa
+                                    </h1>
+                                    <p className="text-gray-600 mt-2">
+                                        Demande de rendez-vous en ligne
+                                    </p>
+                                </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm text-gray-500">
