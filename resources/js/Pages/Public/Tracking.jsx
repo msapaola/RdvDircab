@@ -18,13 +18,9 @@ export default function Tracking({ appointment, activities }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
 
             const result = await response.json();
 
@@ -35,8 +31,7 @@ export default function Tracking({ appointment, activities }) {
                 alert(result.message || 'Une erreur est survenue');
             }
         } catch (error) {
-            console.error('Erreur lors de l\'annulation:', error);
-            alert(`Erreur lors de l'annulation: ${error.message}`);
+            alert('Une erreur de connexion est survenue');
         } finally {
             setIsCanceling(false);
             setShowCancelModal(false);
@@ -148,14 +143,7 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Téléphone :</span> {appointment.phone}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at ? 
-                                                new Date(appointment.created_at).toLocaleDateString('fr-FR', { 
-                                                    day: '2-digit', 
-                                                    month: 'long', 
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                }).replace(',', ' à') : ''}
+                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at}
                                         </div>
                                     </div>
                                 </div>
