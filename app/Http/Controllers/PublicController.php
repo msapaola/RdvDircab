@@ -237,8 +237,12 @@ class PublicController extends Controller
         $appointment->cancelByRequester();
 
         // Envoyer une notification d'annulation au demandeur
-        \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-            ->notify(new AppointmentStatusUpdate($appointment));
+        try {
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new AppointmentStatusUpdate($appointment));
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi email annulation publique: ' . $e->getMessage());
+        }
 
         // Envoyer notification à l'administration (optionnel)
         // Mail::to(config('mail.admin_email'))->send(new AppointmentCancellation($appointment));
