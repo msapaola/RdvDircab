@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/UI/StatusBadge';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import Modal from '@/Components/UI/Modal';
+import ApplicationLogo from '@/Components/ApplicationLogo';
 
 export default function Tracking({ appointment, activities }) {
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -67,8 +68,9 @@ export default function Tracking({ appointment, activities }) {
                 {/* Header */}
                 <header className="bg-white shadow-sm border-b">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="py-6">
-                            <div className="flex items-center justify-between">
+                        <div className="py-6 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <ApplicationLogo className="h-14 w-auto" />
                                 <div>
                                     <h1 className="text-2xl font-bold text-gray-900">
                                         Suivi de votre demande
@@ -77,13 +79,13 @@ export default function Tracking({ appointment, activities }) {
                                         Cabinet du Gouverneur de Kinshasa
                                     </p>
                                 </div>
-                                <a 
-                                    href="/"
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                >
-                                    ← Retour à l'accueil
-                                </a>
                             </div>
+                            <a 
+                                href="/"
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                                ← Retour à l'accueil
+                            </a>
                         </div>
                     </div>
                 </header>
@@ -98,7 +100,7 @@ export default function Tracking({ appointment, activities }) {
                                     Statut de votre demande
                                 </h2>
                                 <span className="text-base font-medium">
-                                    {appointment.formatted_status}
+                                    {appointment.formatted_status || 'Non renseigné'}
                                 </span>
                             </div>
                             
@@ -119,7 +121,7 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : ''}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority}
+                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority || 'Non renseigné'}
                                         </div>
                                     </div>
                                 </div>
@@ -176,13 +178,13 @@ export default function Tracking({ appointment, activities }) {
 
                             {/* Actions */}
                             {appointment.can_be_canceled_by_requester && (
-                                <div className="mt-6 pt-6 border-t border-gray-200">
-                                    <SecondaryButton
+                                <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                                    <button
                                         onClick={() => setShowCancelModal(true)}
-                                        className="text-red-600 border-red-300 hover:bg-red-50"
+                                        className="inline-block px-6 py-2 rounded bg-red-600 text-white font-semibold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition"
                                     >
                                         Annuler ce rendez-vous
-                                    </SecondaryButton>
+                                    </button>
                                 </div>
                             )}
 
@@ -206,43 +208,6 @@ export default function Tracking({ appointment, activities }) {
                                     </h3>
                                     <p className="text-sm text-red-800">
                                         {appointment.rejection_reason}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Activity History */}
-                    <div className="bg-white rounded-lg shadow-sm border">
-                        <div className="p-6 border-b">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Historique des actions
-                            </h2>
-                        </div>
-                        
-                        <div className="p-6">
-                            {activities.length > 0 ? (
-                                <div className="space-y-4">
-                                    {activities.map((activity, index) => (
-                                        <div key={index} className="flex items-start space-x-3">
-                                            <div className="flex-shrink-0">
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-900">
-                                                    {activity.formatted_description}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {activity.time_ago}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8">
-                                    <p className="text-gray-500 text-sm">
-                                        Aucune activité enregistrée pour le moment.
                                     </p>
                                 </div>
                             )}
