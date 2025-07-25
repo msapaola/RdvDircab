@@ -28,7 +28,9 @@ Route::post('/appointments', [PublicController::class, 'store'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('appointments.store');
 
-Route::post('/appointments/{token}/cancel', [PublicController::class, 'cancel'])->name('appointments.cancel');
+Route::post('/appointments/{token}/cancel', [PublicController::class, 'cancel'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('appointments.cancel');
 
 // Route de bienvenue (redirige vers l'accueil public)
 Route::get('/welcome', function () {

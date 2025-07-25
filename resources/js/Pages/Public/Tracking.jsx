@@ -143,7 +143,14 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Téléphone :</span> {appointment.phone}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at}
+                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at ? 
+                                                new Date(appointment.created_at).toLocaleDateString('fr-FR', { 
+                                                    day: '2-digit', 
+                                                    month: 'long', 
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }).replace(',', ' à') : ''}
                                         </div>
                                     </div>
                                 </div>
