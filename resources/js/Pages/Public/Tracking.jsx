@@ -71,14 +71,6 @@ export default function Tracking({ appointment, activities }) {
                         <div className="py-6 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <ApplicationLogo className="h-14 w-auto" />
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-900">
-                                        Suivi de votre demande
-                                    </h1>
-                                    <p className="text-gray-600 mt-1">
-                                        Cabinet du Gouverneur de Kinshasa
-                                    </p>
-                                </div>
                             </div>
                             <a 
                                 href="/"
@@ -90,6 +82,16 @@ export default function Tracking({ appointment, activities }) {
                     </div>
                 </header>
 
+                {/* Titre principal déplacé sous le header */}
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-4 text-center">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Suivi de votre demande
+                    </h1>
+                    <p className="text-gray-600 mt-2">
+                        Cabinet du Gouverneur de Kinshasa
+                    </p>
+                </div>
+
                 {/* Main Content */}
                 <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Status Card */}
@@ -100,7 +102,7 @@ export default function Tracking({ appointment, activities }) {
                                     Statut de votre demande
                                 </h2>
                                 <span className="text-base font-medium">
-                                    {appointment.formatted_status || 'Non renseigné'}
+                                    {appointment.formatted_status && appointment.formatted_status.trim() !== '' ? appointment.formatted_status : 'Non renseigné'}
                                 </span>
                             </div>
                             
@@ -121,7 +123,7 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : ''}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority || 'Non renseigné'}
+                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority && appointment.formatted_priority.trim() !== '' ? appointment.formatted_priority : 'Non renseigné'}
                                         </div>
                                     </div>
                                 </div>
