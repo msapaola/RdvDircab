@@ -64,13 +64,14 @@ try {
     $testAppointment = new Appointment();
     $testAppointment->id = 999;
     $testAppointment->name = 'Test User';
-    $testAppointment->email = 'test@example.com';
+    $testAppointment->email = 'msapaola@gmail.com';
     $testAppointment->subject = 'Test Notification';
     $testAppointment->preferred_date = '2025-07-30';
     $testAppointment->preferred_time = '10:00';
     $testAppointment->status = 'accepted';
     $testAppointment->formatted_status = 'Accepté';
     $testAppointment->formatted_priority = 'Normal';
+    $testAppointment->secure_token = 'test-token-12345'; // Ajouter un token pour éviter l'erreur de route
     
     echo "   ✓ Rendez-vous de test créé\n";
 
@@ -156,6 +157,36 @@ try {
             echo "   ✓ Notification envoyée avec succès à msapaola@gmail.com\n";
         } catch (Exception $e) {
             echo "   ✗ Erreur d'envoi: " . $e->getMessage() . "\n";
+            
+            // Suggérer de tester avec Gmail
+            echo "\n   💡 Suggestion: Tester avec Gmail SMTP\n";
+            echo "   Modifiez temporairement votre .env:\n";
+            echo "   MAIL_HOST=smtp.gmail.com\n";
+            echo "   MAIL_PORT=587\n";
+            echo "   MAIL_ENCRYPTION=tls\n";
+            echo "   MAIL_USERNAME=votre_email@gmail.com\n";
+            echo "   MAIL_PASSWORD=votre_mot_de_passe_app_gmail\n\n";
+        }
+    }
+
+    // 8. Test de connexion alternative
+    echo "8. Test de connexion alternative (Gmail)...\n";
+    echo "   Voulez-vous tester la connexion Gmail ? (y/n): ";
+    $handle = fopen("php://stdin", "r");
+    $line = fgets($handle);
+    fclose($handle);
+    
+    if (trim($line) === 'y') {
+        $gmailHost = 'smtp.gmail.com';
+        $gmailPort = 587;
+        
+        $connection = @fsockopen($gmailHost, $gmailPort, $errno, $errstr, 10);
+        if ($connection) {
+            echo "   ✓ Connexion réussie à $gmailHost:$gmailPort\n";
+            echo "   💡 Gmail SMTP fonctionne, vous pouvez l'utiliser temporairement\n";
+            fclose($connection);
+        } else {
+            echo "   ✗ Échec de connexion à $gmailHost:$gmailPort - $errstr ($errno)\n";
         }
     }
 
