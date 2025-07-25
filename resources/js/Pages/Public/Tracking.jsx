@@ -97,10 +97,9 @@ export default function Tracking({ appointment, activities }) {
                                 <h2 className="text-lg font-semibold text-gray-900">
                                     Statut de votre demande
                                 </h2>
-                                <StatusBadge 
-                                    status={appointment.formatted_status}
-                                    color={getStatusColor(appointment.status)}
-                                />
+                                <span className="text-base font-medium">
+                                    {appointment.formatted_status}
+                                </span>
                             </div>
                             
                             <div className="grid md:grid-cols-2 gap-6">
@@ -113,18 +112,14 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Objet :</span> {appointment.subject}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Date souhaitée :</span> {appointment.preferred_date}
+                                            <span className="font-medium">Date souhaitée :</span> {appointment.preferred_date ?
+                                                new Date(appointment.preferred_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time}
+                                            <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : ''}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Priorité :</span>
-                                            <StatusBadge 
-                                                status={appointment.formatted_priority}
-                                                color={getPriorityColor(appointment.priority)}
-                                                size="sm"
-                                            />
+                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority}
                                         </div>
                                     </div>
                                 </div>
