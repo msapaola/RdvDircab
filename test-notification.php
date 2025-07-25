@@ -16,24 +16,44 @@ try {
     // 1. Test de la configuration mail
     echo "1. Vérification de la configuration mail...\n";
     $mailConfig = config('mail');
-    echo "   - Driver: " . $mailConfig['default'] . "\n";
-    echo "   - Host: " . $mailConfig['mailers']['smtp']['host'] . "\n";
-    echo "   - Port: " . $mailConfig['mailers']['smtp']['port'] . "\n";
-    echo "   - Encryption: " . $mailConfig['mailers']['smtp']['encryption'] . "\n";
-    echo "   - Username: " . $mailConfig['mailers']['smtp']['username'] . "\n";
-    echo "   - From: " . $mailConfig['from']['address'] . "\n\n";
+    echo "   - Driver: " . ($mailConfig['default'] ?? 'non défini') . "\n";
+    
+    if (isset($mailConfig['mailers']['smtp'])) {
+        $smtpConfig = $mailConfig['mailers']['smtp'];
+        echo "   - Host: " . ($smtpConfig['host'] ?? 'non défini') . "\n";
+        echo "   - Port: " . ($smtpConfig['port'] ?? 'non défini') . "\n";
+        echo "   - Encryption: " . ($smtpConfig['encryption'] ?? 'non défini') . "\n";
+        echo "   - Username: " . ($smtpConfig['username'] ?? 'non défini') . "\n";
+        echo "   - Password: " . (isset($smtpConfig['password']) ? '***défini***' : 'non défini') . "\n";
+    } else {
+        echo "   - Configuration SMTP non trouvée\n";
+    }
+    
+    if (isset($mailConfig['from'])) {
+        echo "   - From Address: " . ($mailConfig['from']['address'] ?? 'non défini') . "\n";
+        echo "   - From Name: " . ($mailConfig['from']['name'] ?? 'non défini') . "\n";
+    }
+    echo "\n";
 
     // 2. Test de connexion SMTP simple
     echo "2. Test de connexion SMTP...\n";
-    $host = $mailConfig['mailers']['smtp']['host'];
-    $port = $mailConfig['mailers']['smtp']['port'];
-    
-    $connection = @fsockopen($host, $port, $errno, $errstr, 10);
-    if ($connection) {
-        echo "   ✓ Connexion réussie à $host:$port\n";
-        fclose($connection);
+    if (isset($mailConfig['mailers']['smtp'])) {
+        $host = $mailConfig['mailers']['smtp']['host'] ?? '';
+        $port = $mailConfig['mailers']['smtp']['port'] ?? 25;
+        
+        if ($host) {
+            $connection = @fsockopen($host, $port, $errno, $errstr, 10);
+            if ($connection) {
+                echo "   ✓ Connexion réussie à $host:$port\n";
+                fclose($connection);
+            } else {
+                echo "   ✗ Échec de connexion à $host:$port - $errstr ($errno)\n";
+            }
+        } else {
+            echo "   ✗ Host SMTP non défini\n";
+        }
     } else {
-        echo "   ✗ Échec de connexion à $host:$port - $errstr ($errno)\n";
+        echo "   ✗ Configuration SMTP non disponible\n";
     }
     echo "\n";
 
@@ -69,9 +89,38 @@ try {
     }
     echo "\n";
 
-    // 5. Suggestions de solutions
-    echo "5. Suggestions de solutions:\n";
-    echo "   a) Vérifier la configuration SMTP dans .env:\n";
+    // 5. Vérification du fichier .env
+    echo "5. Vérification des variables d'environnement...\n";
+    $envFile = '.env';
+    if (file_exists($envFile)) {
+        echo "   ✓ Fichier .env trouvé\n";
+        $envContent = file_get_contents($envFile);
+        
+        $mailVars = [
+            'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 
+            'MAIL_PASSWORD', 'MAIL_ENCRYPTION', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME'
+        ];
+        
+        foreach ($mailVars as $var) {
+            if (preg_match("/^$var=(.+)$/m", $envContent, $matches)) {
+                $value = trim($matches[1]);
+                if ($var === 'MAIL_PASSWORD') {
+                    echo "   - $var: " . (strlen($value) > 0 ? '***défini***' : 'non défini') . "\n";
+                } else {
+                    echo "   - $var: $value\n";
+                }
+            } else {
+                echo "   - $var: non défini\n";
+            }
+        }
+    } else {
+        echo "   ✗ Fichier .env non trouvé\n";
+    }
+    echo "\n";
+
+    // 6. Suggestions de solutions
+    echo "6. Suggestions de solutions:\n";
+    echo "   a) Configuration SMTP recommandée dans .env:\n";
     echo "      MAIL_MAILER=smtp\n";
     echo "      MAIL_HOST=gouv.kinshasa.cd\n";
     echo "      MAIL_PORT=465\n";
@@ -81,14 +130,20 @@ try {
     echo "      MAIL_FROM_ADDRESS=votre_email@gouv.kinshasa.cd\n";
     echo "      MAIL_FROM_NAME=\"Cabinet du Gouverneur\"\n\n";
     
-    echo "   b) Tester avec un service SMTP alternatif (Gmail, Mailgun, etc.)\n";
-    echo "   c) Vérifier que le port 465 n'est pas bloqué par le firewall\n";
-    echo "   d) Utiliser le port 587 avec TLS au lieu de 465 avec SSL\n";
-    echo "   e) Désactiver temporairement les notifications pour tester:\n";
-    echo "      - Commenter la ligne d'envoi de notification dans AppointmentController\n\n";
+    echo "   b) Alternative avec port 587:\n";
+    echo "      MAIL_PORT=587\n";
+    echo "      MAIL_ENCRYPTION=tls\n\n";
+    
+    echo "   c) Test avec Gmail (temporaire):\n";
+    echo "      MAIL_HOST=smtp.gmail.com\n";
+    echo "      MAIL_PORT=587\n";
+    echo "      MAIL_ENCRYPTION=tls\n\n";
+    
+    echo "   d) Vérifier que le port 465 n'est pas bloqué par le firewall\n";
+    echo "   e) Les notifications sont maintenant gérées avec try-catch\n\n";
 
-    // 6. Test avec try-catch pour l'envoi réel
-    echo "6. Test d'envoi réel (optionnel)...\n";
+    // 7. Test avec try-catch pour l'envoi réel
+    echo "7. Test d'envoi réel (optionnel)...\n";
     echo "   Voulez-vous tester l'envoi réel ? (y/n): ";
     $handle = fopen("php://stdin", "r");
     $line = fgets($handle);
@@ -96,9 +151,9 @@ try {
     
     if (trim($line) === 'y') {
         try {
-            \Illuminate\Support\Facades\Notification::route('mail', 'test@example.com')
+            \Illuminate\Support\Facades\Notification::route('mail', 'msapaola@gmail.com')
                 ->notify($notification);
-            echo "   ✓ Notification envoyée avec succès\n";
+            echo "   ✓ Notification envoyée avec succès à msapaola@gmail.com\n";
         } catch (Exception $e) {
             echo "   ✗ Erreur d'envoi: " . $e->getMessage() . "\n";
         }
@@ -106,6 +161,7 @@ try {
 
 } catch (Exception $e) {
     echo "Erreur générale: " . $e->getMessage() . "\n";
+    echo "Trace: " . $e->getTraceAsString() . "\n";
 }
 
 echo "\n=== Fin du test ===\n"; 
