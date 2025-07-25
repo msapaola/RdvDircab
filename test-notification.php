@@ -144,7 +144,7 @@ try {
     echo "   e) Les notifications sont maintenant gérées avec try-catch\n\n";
 
     // 7. Test avec try-catch pour l'envoi réel
-    echo "7. Test d'envoi réel (optionnel)...\n";
+    echo "7. Test d'envoi réel avec la configuration actuelle...\n";
     echo "   Voulez-vous tester l'envoi réel ? (y/n): ";
     $handle = fopen("php://stdin", "r");
     $line = fgets($handle);
@@ -157,38 +157,29 @@ try {
             echo "   ✓ Notification envoyée avec succès à msapaola@gmail.com\n";
         } catch (Exception $e) {
             echo "   ✗ Erreur d'envoi: " . $e->getMessage() . "\n";
-            
-            // Suggérer de tester avec Gmail
-            echo "\n   💡 Suggestion: Tester avec Gmail SMTP\n";
-            echo "   Modifiez temporairement votre .env:\n";
-            echo "   MAIL_HOST=smtp.gmail.com\n";
-            echo "   MAIL_PORT=587\n";
-            echo "   MAIL_ENCRYPTION=tls\n";
-            echo "   MAIL_USERNAME=votre_email@gmail.com\n";
-            echo "   MAIL_PASSWORD=votre_mot_de_passe_app_gmail\n\n";
+            echo "   💡 Le problème vient de la configuration SMTP actuelle\n";
         }
     }
 
-    // 8. Test de connexion alternative
-    echo "8. Test de connexion alternative (Gmail)...\n";
-    echo "   Voulez-vous tester la connexion Gmail ? (y/n): ";
-    $handle = fopen("php://stdin", "r");
-    $line = fgets($handle);
-    fclose($handle);
-    
-    if (trim($line) === 'y') {
-        $gmailHost = 'smtp.gmail.com';
-        $gmailPort = 587;
+    // 8. Résumé du diagnostic
+    echo "\n8. Résumé du diagnostic:\n";
+    if (isset($mailConfig['mailers']['smtp'])) {
+        $smtpConfig = $mailConfig['mailers']['smtp'];
+        $host = $smtpConfig['host'] ?? '';
+        $port = $smtpConfig['port'] ?? '';
+        $encryption = $smtpConfig['encryption'] ?? '';
         
-        $connection = @fsockopen($gmailHost, $gmailPort, $errno, $errstr, 10);
-        if ($connection) {
-            echo "   ✓ Connexion réussie à $gmailHost:$gmailPort\n";
-            echo "   💡 Gmail SMTP fonctionne, vous pouvez l'utiliser temporairement\n";
-            fclose($connection);
-        } else {
-            echo "   ✗ Échec de connexion à $gmailHost:$gmailPort - $errstr ($errno)\n";
-        }
+        echo "   Configuration actuelle:\n";
+        echo "   - Serveur: $host:$port\n";
+        echo "   - Encryption: $encryption\n";
+        echo "   - Statut: " . (isset($connection) && $connection ? "✓ Connecté" : "✗ Non connecté") . "\n";
     }
+    
+    echo "\n   Pour résoudre le problème:\n";
+    echo "   1. Vérifiez que le serveur $host est accessible\n";
+    echo "   2. Vérifiez que le port $port n'est pas bloqué\n";
+    echo "   3. Contactez l'administrateur du serveur SMTP\n";
+    echo "   4. Vérifiez les identifiants dans le fichier .env\n";
 
 } catch (Exception $e) {
     echo "Erreur générale: " . $e->getMessage() . "\n";
