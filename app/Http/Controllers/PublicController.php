@@ -204,7 +204,7 @@ class PublicController extends Controller
     public function cancel(Request $request, $token)
     {
         $appointment = Appointment::where('secure_token', $token)->first();
-        
+
         if (!$appointment) {
             return response()->json([
                 'success' => false,
@@ -216,31 +216,26 @@ class PublicController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Ce rendez-vous ne peut plus être annulé'
-            ], 422);
+            ], 400);
         }
 
-        // Logger l'activité avant l'annulation
+        // Log the cancellation
         activity()
             ->performedOn($appointment)
-            ->withProperties([
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'cancellation_method' => 'requester',
-            ])
             ->log('Rendez-vous annulé par le demandeur');
 
         $appointment->cancelByRequester();
 
-        // Envoyer une notification d'annulation au demandeur
-        \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-            ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-
-        // Envoyer notification à l'administration (optionnel)
-        // Mail::to(config('mail.admin_email'))->send(new AppointmentCancellation($appointment));
+        try {
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+        } catch (\Exception $e) {
+            // L'email n'a pas pu être envoyé, mais l'annulation est effective
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre rendez-vous a été annulé avec succès'
+            'message' => 'Rendez-vous annulé avec succès'
         ]);
     }
 
