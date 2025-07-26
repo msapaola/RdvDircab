@@ -608,7 +608,7 @@ export default function Index({ appointments, stats, filters }) {
                                                         <button
                                                             onClick={() => openEditModal(appointment)}
                                                             className="text-purple-600 hover:text-purple-900"
-                                                        >
+                                                    >
                                                             ✏️ Modifier
                                                         </button>
                                                     
@@ -682,9 +682,9 @@ export default function Index({ appointments, stats, filters }) {
                                                                 : 'bg-white text-gray-700'
                                                         }`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
-                                                    />
+                                            />
                                                 )
-                                            ))}
+                                        ))}
                                         </div>
                                     </div>
                                 </div>
