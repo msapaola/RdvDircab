@@ -86,34 +86,9 @@ class AppointmentController extends Controller
     {
         if ($appointment->accept(auth()->user())) {
             // Envoyer la notification au demandeur
-            try {
-                // Vérifier que l'email est valide
-                if (empty($appointment->email)) {
-                    \Log::error('Email manquant pour le rendez-vous #' . $appointment->id);
-                    return redirect()->back()->with('warning', 'Rendez-vous accepté avec succès, mais l\'email du demandeur est manquant.');
-                }
-
-                // Créer la notification
-                $notification = new \App\Notifications\AppointmentStatusUpdate($appointment);
-                
-                // Option temporaire : utiliser le driver log pour tester
-                if (config('mail.default') === 'log') {
-                    \Log::info('Mode test : notification serait envoyée à ' . $appointment->email);
-                    \Log::info('Contenu de la notification : ' . json_encode($notification->toArray($appointment)));
-                }
-                
-                // Envoyer la notification
-                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                    ->notify($notification);
-                
-                \Log::info('Notification email envoyée avec succès pour le rendez-vous #' . $appointment->id . ' vers ' . $appointment->email);
-                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
-            } catch (\Exception $e) {
-                // Si l'envoi d'email échoue, on continue mais on informe l'admin
-                \Log::error('Erreur lors de l\'envoi de notification email pour le rendez-vous #' . $appointment->id . ': ' . $e->getMessage());
-                \Log::error('Stack trace: ' . $e->getTraceAsString());
-                return redirect()->back()->with('warning', 'Rendez-vous accepté avec succès, mais l\'envoi de l\'email de notification a échoué. Erreur: ' . $e->getMessage());
-            }
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');
@@ -126,13 +101,9 @@ class AppointmentController extends Controller
         ]);
 
         if ($appointment->reject(auth()->user(), $request->rejection_reason)) {
-            try {
-                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-                return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
-            } catch (\Exception $e) {
-                return redirect()->back()->with('warning', 'Rendez-vous refusé avec succès, mais l\'envoi de l\'email de notification a échoué.');
-            }
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible de refuser ce rendez-vous.');
@@ -141,17 +112,13 @@ class AppointmentController extends Controller
     public function cancel(Request $request, Appointment $appointment)
     {
         $request->validate([
-            'cancel_reason' => 'required|string|max:500',
+            'admin_notes' => 'required|string|max:500',
         ]);
 
-        if ($appointment->cancel(auth()->user(), $request->cancel_reason)) {
-            try {
-                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-                return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
-            } catch (\Exception $e) {
-                return redirect()->back()->with('warning', 'Rendez-vous annulé avec succès, mais l\'envoi de l\'email de notification a échoué.');
-            }
+        if ($appointment->cancel(auth()->user(), $request->admin_notes)) {
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible d\'annuler ce rendez-vous.');
@@ -196,13 +163,9 @@ class AppointmentController extends Controller
     public function complete(Request $request, Appointment $appointment)
     {
         if ($appointment->markAsCompleted(auth()->user())) {
-            try {
-                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-                return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
-            } catch (\Exception $e) {
-                return redirect()->back()->with('warning', 'Rendez-vous marqué comme terminé, mais l\'envoi de l\'email de notification a échoué.');
-            }
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
         }
 
         return redirect()->back()->with('error', 'Impossible de marquer ce rendez-vous comme terminé.');
