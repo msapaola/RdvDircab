@@ -32,7 +32,7 @@ foreach ($mailers as $mailer) {
         // Créer un message simple
         $message = "Test d'envoi d'email avec mailer: $mailer\n";
         $message .= "Date: " . date('Y-m-d H:i:s') . "\n";
-        $message .= "Serveur: " . $_SERVER['SERVER_NAME'] ?? 'localhost' . "\n";
+        $message .= "Serveur: " . ($_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost') . "\n";
         
         // Envoyer l'email
         Mail::raw($message, function($msg) {
