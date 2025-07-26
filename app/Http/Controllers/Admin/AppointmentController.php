@@ -87,12 +87,32 @@ class AppointmentController extends Controller
         if ($appointment->accept(auth()->user())) {
             // Envoyer la notification au demandeur
             try {
+                // Vérifier que l'email est valide
+                if (empty($appointment->email)) {
+                    \Log::error('Email manquant pour le rendez-vous #' . $appointment->id);
+                    return redirect()->back()->with('warning', 'Rendez-vous accepté avec succès, mais l\'email du demandeur est manquant.');
+                }
+
+                // Créer la notification
+                $notification = new \App\Notifications\AppointmentStatusUpdate($appointment);
+                
+                // Option temporaire : utiliser le driver log pour tester
+                if (config('mail.default') === 'log') {
+                    \Log::info('Mode test : notification serait envoyée à ' . $appointment->email);
+                    \Log::info('Contenu de la notification : ' . json_encode($notification->toArray($appointment)));
+                }
+                
+                // Envoyer la notification
                 \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                    ->notify($notification);
+                
+                \Log::info('Notification email envoyée avec succès pour le rendez-vous #' . $appointment->id . ' vers ' . $appointment->email);
                 return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
             } catch (\Exception $e) {
                 // Si l'envoi d'email échoue, on continue mais on informe l'admin
-                return redirect()->back()->with('warning', 'Rendez-vous accepté avec succès, mais l\'envoi de l\'email de notification a échoué.');
+                \Log::error('Erreur lors de l\'envoi de notification email pour le rendez-vous #' . $appointment->id . ': ' . $e->getMessage());
+                \Log::error('Stack trace: ' . $e->getTraceAsString());
+                return redirect()->back()->with('warning', 'Rendez-vous accepté avec succès, mais l\'envoi de l\'email de notification a échoué. Erreur: ' . $e->getMessage());
             }
         }
 
