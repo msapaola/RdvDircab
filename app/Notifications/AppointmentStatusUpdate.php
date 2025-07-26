@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AppointmentStatusUpdate extends Notification
+class AppointmentStatusUpdate extends Notification implements ShouldQueue
 {
     use Queueable;
 
