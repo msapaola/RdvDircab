@@ -240,6 +240,15 @@ export default function Index({ appointments, stats, filters }) {
 
     const getPriorityDisplay = (priority) => {
         switch (priority) {
+            case 'urgent': return 'URGENT';
+            case 'official': return 'OFFICIEL';
+            case 'normal': return 'NORMALE';
+            default: return 'NORMALE';
+        }
+    };
+
+    const getPriorityStyle = (priority) => {
+        switch (priority) {
             case 'urgent': return { text: 'URGENT', class: 'text-red-700 bg-red-100 border-red-300' };
             case 'official': return { text: 'OFFICIEL', class: 'text-blue-700 bg-blue-100 border-blue-300' };
             case 'normal': return { text: 'NORMALE', class: 'text-gray-700 bg-gray-100 border-gray-300' };
@@ -600,8 +609,8 @@ export default function Index({ appointments, stats, filters }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(appointment.priority).class}`}>
-                                                        {getPriorityDisplay(appointment.priority).text}
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityStyle(appointment.priority).class}`}>
+                                                        {getPriorityDisplay(appointment.priority)}
                                                     </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -766,8 +775,8 @@ export default function Index({ appointments, stats, filters }) {
                                         </div>
                                         
                                         <div className="flex items-center justify-between mb-4">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(appointment.priority).class}`}>
-                                                {getPriorityDisplay(appointment.priority).text}
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityStyle(appointment.priority).class}`}>
+                                                {getPriorityDisplay(appointment.priority)}
                                             </span>
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusDisplay(appointment.status).class}`}>
                                                 {getStatusDisplay(appointment.status).text}
@@ -847,8 +856,8 @@ export default function Index({ appointments, stats, filters }) {
                                     <p><span className="font-medium">Date souhaitée :</span> {formatDate(selectedAppointment.preferred_date)}</p>
                                     <p><span className="font-medium">Heure souhaitée :</span> {formatTime(selectedAppointment.preferred_time)}</p>
                                     <p><span className="font-medium">Priorité :</span> 
-                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityDisplay(selectedAppointment.priority).class}`}>
-                                            {getPriorityDisplay(selectedAppointment.priority).text}
+                                        <span className={`ml-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getPriorityStyle(selectedAppointment.priority).class}`}>
+                                            {getPriorityDisplay(selectedAppointment.priority)}
                                         </span>
                                     </p>
                                     <p><span className="font-medium">Statut :</span> 
