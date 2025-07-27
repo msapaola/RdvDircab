@@ -60,6 +60,48 @@ export default function Tracking({ appointment, activities }) {
         return colors[priority] || 'gray';
     };
 
+    const getStatusDisplay = (status) => {
+        switch (status) {
+            case 'pending': return 'En attente';
+            case 'accepted': return 'Accepté';
+            case 'rejected': return 'Refusé';
+            case 'canceled': return 'Annulé';
+            case 'canceled_by_requester': return 'Annulé par vous';
+            case 'completed': return 'Terminé';
+            case 'expired': return 'Expiré';
+            default: return 'En attente';
+        }
+    };
+
+    const getPriorityDisplay = (priority) => {
+        switch (priority) {
+            case 'normal': return 'Normal';
+            case 'urgent': return 'Urgent';
+            case 'official': return 'Officiel';
+            default: return 'Normal';
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const formatDateTime = (dateTimeString) => {
+        if (!dateTimeString) return '';
+        return new Date(dateTimeString).toLocaleString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     return (
         <>
             <Head title={`Suivi - ${appointment.subject}`} />
@@ -102,7 +144,7 @@ export default function Tracking({ appointment, activities }) {
                                     Statut de votre demande
                                 </h2>
                                 <span className="text-base font-medium">
-                                    {appointment.formatted_status && appointment.formatted_status.trim() !== '' ? appointment.formatted_status : 'Non renseigné'}
+                                    {appointment.status ? getStatusDisplay(appointment.status) : 'Non renseigné'}
                                 </span>
                             </div>
                             
@@ -116,14 +158,13 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Objet :</span> {appointment.subject}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Date souhaitée :</span> {appointment.preferred_date ?
-                                                new Date(appointment.preferred_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) : ''}
+                                            <span className="font-medium">Date souhaitée :</span> {appointment.preferred_date ? formatDate(appointment.preferred_date) : 'Non définie'}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : ''}
+                                            <span className="font-medium">Heure souhaitée :</span> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : 'Non définie'}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Priorité :</span> {appointment.formatted_priority && appointment.formatted_priority.trim() !== '' ? appointment.formatted_priority : 'Non renseigné'}
+                                            <span className="font-medium">Priorité :</span> {appointment.priority ? getPriorityDisplay(appointment.priority) : 'Non définie'}
                                         </div>
                                     </div>
                                 </div>
@@ -143,7 +184,7 @@ export default function Tracking({ appointment, activities }) {
                                             <span className="font-medium">Téléphone :</span> {appointment.phone}
                                         </div>
                                         <div>
-                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at}
+                                            <span className="font-medium">Date de soumission :</span> {appointment.created_at ? formatDateTime(appointment.created_at) : 'Non définie'}
                                         </div>
                                     </div>
                                 </div>
