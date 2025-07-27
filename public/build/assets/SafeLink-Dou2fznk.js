@@ -1,1 +1,0 @@
-import{j as r,t as f}from"./app-BW3eUIhd.js";function s({href:t,method:n,as:i,className:x="",children:j,...u}){return!t||t==="#"||t===""?r.jsx("span",{className:x,...u,children:j}):n&&i&&typeof n=="string"&&typeof i=="string"?r.jsx(f,{href:t,method:n,as:i,className:x,...u,children:j}):r.jsx(f,{href:t,className:x,...u,children:j})}export{s as S};
