@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -16,8 +16,26 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
+    const [currentView, setCurrentView] = useState('timeGridWeek');
     
     const calendarRef = useRef(null);
+
+    // Détecter si on est sur mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+            if (window.innerWidth < 768) {
+                setCurrentView('timeGridDay');
+            } else {
+                setCurrentView('timeGridWeek');
+            }
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const appointmentForm = useForm({
         name: '',
@@ -107,89 +125,28 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Utiliser XMLHttpRequest pour éviter les problèmes CSRF
-        const xhr = new XMLHttpRequest();
-        
-        xhr.open('POST', '/appointments', true);
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
-        xhr.onload = function() {
-            if (xhr.status === 200 || xhr.status === 201) {
-                try {
-                    const result = JSON.parse(xhr.responseText);
-                    if (result.success) {
-                        setSubmitMessage({
-                            type: 'success',
-                            message: result.message,
-                            trackingUrl: result.tracking_url
-                        });
-                        setShowAppointmentModal(false);
-                        // Recharger le calendrier
-                        if (calendarRef.current) {
-                            calendarRef.current.getApi().refetchEvents();
-                        }
-                    } else {
-                        setSubmitMessage({
-                            type: 'error',
-                            message: result.message || 'Une erreur est survenue',
-                            errors: result.errors
-                        });
-                    }
-                } catch (e) {
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de parsing de la réponse'
-                    });
-                }
-            } else if (xhr.status === 419) {
+        router.post('/appointments', formData, {
+            onSuccess: (response) => {
+                setSubmitMessage({
+                    type: 'success',
+                    message: 'Votre demande de rendez-vous a été envoyée avec succès ! Vous recevrez une confirmation par email.',
+                    trackingUrl: response.props.flash?.trackingUrl
+                });
+                setIsSubmitting(false);
+                
+                // Fermer le modal après 3 secondes
+                setTimeout(() => {
+                    closeModal();
+                }, 3000);
+            },
+            onError: (errors) => {
                 setSubmitMessage({
                     type: 'error',
-                    message: 'Erreur CSRF - Page expirée. Veuillez rafraîchir la page.'
+                    message: 'Une erreur est survenue. Veuillez vérifier vos informations et réessayer.'
                 });
-            } else if (xhr.status === 422) {
-                try {
-                    const result = JSON.parse(xhr.responseText);
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de validation',
-                        errors: result.errors
-                    });
-                } catch (e) {
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de validation'
-                    });
-                }
-            } else {
-                setSubmitMessage({
-                    type: 'error',
-                    message: `Erreur serveur (${xhr.status}): ${xhr.statusText}`
-                });
+                setIsSubmitting(false);
             }
-            setIsSubmitting(false);
-        };
-        
-        xhr.onerror = function() {
-            setSubmitMessage({
-                type: 'error',
-                message: 'Erreur de connexion au serveur'
-            });
-            setIsSubmitting(false);
-        };
-        
-        xhr.ontimeout = function() {
-            setSubmitMessage({
-                type: 'error',
-                message: 'Délai d\'attente dépassé'
-            });
-            setIsSubmitting(false);
-        };
-        
-        xhr.timeout = 30000; // 30 secondes
-        
-        // Envoyer le FormData
-        xhr.send(formData);
+        });
     };
 
     const closeModal = () => {
@@ -207,28 +164,28 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                 {/* Header */}
                 <header className="bg-white shadow-sm border-b">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 sm:py-6 gap-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-center py-4 sm:py-6 space-y-4 sm:space-y-0">
                             <div className="flex items-center gap-3 sm:gap-4">
                                 <ApplicationLogo className="h-12 sm:h-16 w-auto" />
                             </div>
-                            <div className="text-left sm:text-right w-full sm:w-auto">
+                            <div className="text-center sm:text-right">
                                 <p className="text-xs sm:text-sm text-gray-500">
                                     Horaires d'ouverture
                                 </p>
                                 <p className="text-xs sm:text-sm font-medium text-gray-900">
-                                    Lundi - Vendredi: 8h00 - 17h00
+                                    Lun - Ven: 8h00 - 17h00
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                    Pause déjeuner: 12h00 - 14h00
+                                    Pause: 12h00 - 14h00
                                 </p>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                {/* Titre principal déplacé sous le header */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-8 mb-4 text-center">
-                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                {/* Titre principal */}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 mb-4 text-center">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                         Cabinet du Gouverneur de Kinshasa
                     </h1>
                     <p className="text-sm sm:text-base text-gray-600 mt-2">
@@ -243,24 +200,24 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         <h2 className="text-base sm:text-lg font-semibold text-blue-900 mb-3 sm:mb-2">
                             Comment demander un rendez-vous ?
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm text-blue-800">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm text-blue-800">
                             <div className="flex items-start">
                                 <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     1
                                 </span>
-                                <span>Consultez le calendrier ci-dessous et sélectionnez un créneau disponible (en vert)</span>
+                                <span>Sélectionnez un créneau disponible (vert) dans le calendrier</span>
                             </div>
                             <div className="flex items-start">
                                 <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     2
                                 </span>
-                                <span>Remplissez le formulaire avec vos informations et l'objet de votre visite</span>
+                                <span>Remplissez le formulaire avec vos informations</span>
                             </div>
-                            <div className="flex items-start sm:col-span-2 lg:col-span-1">
+                            <div className="flex items-start">
                                 <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs font-bold mr-2 sm:mr-3 mt-0.5 flex-shrink-0">
                                     3
                                 </span>
-                                <span>Recevez une confirmation par email avec un lien de suivi unique</span>
+                                <span>Recevez une confirmation par email avec lien de suivi</span>
                             </div>
                         </div>
                     </div>
@@ -280,11 +237,11 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                             <FullCalendar
                                 ref={calendarRef}
                                 plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridWeek"
+                                initialView={currentView}
                                 headerToolbar={{
                                     left: 'prev,next today',
                                     center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                    right: isMobile ? 'timeGridDay,timeGridWeek' : 'dayGridMonth,timeGridWeek,timeGridDay'
                                 }}
                                 locale={frLocale}
                                 selectable={true}
@@ -320,19 +277,22 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                                 }}
                                 slotEventOverlap={false}
                                 eventOverlap={false}
-                                // Améliorations pour mobile
-                                dayHeaderFormat={{
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit'
+                                views={{
+                                    timeGridDay: {
+                                        titleFormat: { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        }
+                                    },
+                                    timeGridWeek: {
+                                        titleFormat: { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric' 
+                                        }
+                                    }
                                 }}
-                                slotLabelPlacement="start"
-                                eventDisplay="block"
-                                eventMinHeight={20}
-                                // Styles personnalisés pour mobile
-                                eventClassNames="text-xs sm:text-sm"
-                                dayHeaderClassNames="text-xs sm:text-sm font-medium"
-                                slotLabelClassNames="text-xs sm:text-sm"
                             />
                         </div>
                     </div>
@@ -342,15 +302,15 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         <h3 className="text-xs sm:text-sm font-medium text-gray-900 mb-2 sm:mb-3">Légende</h3>
                         <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
                             <div className="flex items-center">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded mr-2 flex-shrink-0"></div>
-                                <span>C Créneau disponible</span>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded mr-2"></div>
+                                <span>Créneau disponible</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded mr-2 flex-shrink-0"></div>
-                                <span>C Créneau indisponible</span>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded mr-2"></div>
+                                <span>Créneau indisponible</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gray-300 rounded mr-2 flex-shrink-0"></div>
+                                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gray-300 rounded mr-2"></div>
                                 <span>Weekend / Hors horaires</span>
                             </div>
                         </div>
@@ -395,7 +355,7 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         }`}>
                             <p className="text-xs sm:text-sm">{submitMessage.message}</p>
                             {submitMessage.trackingUrl && (
-                                <div className="mt-2 sm:mt-3">
+                                <div className="mt-3">
                                     <a 
                                         href={submitMessage.trackingUrl}
                                         className="text-xs sm:text-sm text-green-600 hover:text-green-800 underline"

@@ -17,8 +17,8 @@ export default function Tracking({ appointment, activities }) {
             // Utiliser Inertia.js au lieu de fetch pour une meilleure gestion
             router.post(`/appointments/${appointment.secure_token}/cancel`, {}, {
                 onSuccess: () => {
-                    // Recharger la page pour mettre à jour le statut
-                    router.reload();
+                // Recharger la page pour mettre à jour le statut
+                router.reload();
                 },
                 onError: (errors) => {
                     console.error('Erreur lors de l\'annulation:', errors);
@@ -112,13 +112,13 @@ export default function Tracking({ appointment, activities }) {
                         <div className="py-6 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <ApplicationLogo className="h-14 w-auto" />
-                            </div>
-                            <a 
-                                href="/"
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                                ← Retour à l'accueil
-                            </a>
+                                </div>
+                                <a 
+                                    href="/"
+                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                    ← Retour à l'accueil
+                                </a>
                         </div>
                     </div>
                 </header>
@@ -227,7 +227,7 @@ export default function Tracking({ appointment, activities }) {
                                         </h3>
                                         <div className="flex justify-center">
                                             <button
-                                                onClick={() => setShowCancelModal(true)}
+                                        onClick={() => setShowCancelModal(true)}
                                                 disabled={isCanceling}
                                                 className="inline-flex items-center px-6 py-3 rounded-lg bg-red-600 text-white font-semibold shadow-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
@@ -306,12 +306,12 @@ export default function Tracking({ appointment, activities }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                             </svg>
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">
-                            Confirmer l'annulation
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-6">
-                            Êtes-vous sûr de vouloir annuler votre rendez-vous ? Cette action ne peut pas être annulée.
-                        </p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Confirmer l'annulation
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-6">
+                        Êtes-vous sûr de vouloir annuler votre rendez-vous ? Cette action ne peut pas être annulée.
+                    </p>
                         
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                             <h4 className="text-sm font-medium text-yellow-900 mb-2">Détails du rendez-vous :</h4>
@@ -321,19 +321,19 @@ export default function Tracking({ appointment, activities }) {
                                 <p><strong>Heure :</strong> {appointment.preferred_time ? appointment.preferred_time.slice(0,5).replace(':', 'h') : 'Non définie'}</p>
                             </div>
                         </div>
-                        
-                        <div className="flex justify-end space-x-3">
+                    
+                    <div className="flex justify-end space-x-3">
                             <SecondaryButton 
                                 onClick={() => setShowCancelModal(false)}
                                 disabled={isCanceling}
                             >
-                                Annuler
-                            </SecondaryButton>
-                            <PrimaryButton
-                                onClick={handleCancel}
-                                disabled={isCanceling}
-                                className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                            >
+                            Annuler
+                        </SecondaryButton>
+                        <PrimaryButton
+                            onClick={handleCancel}
+                            disabled={isCanceling}
+                            className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                        >
                                 {isCanceling ? (
                                     <div className="flex items-center">
                                         <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -345,7 +345,7 @@ export default function Tracking({ appointment, activities }) {
                                 ) : (
                                     'Confirmer l\'annulation'
                                 )}
-                            </PrimaryButton>
+                        </PrimaryButton>
                         </div>
                     </div>
                 </div>
