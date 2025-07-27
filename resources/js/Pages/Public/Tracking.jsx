@@ -14,25 +14,24 @@ export default function Tracking({ appointment, activities }) {
         setIsCanceling(true);
         
         try {
-            const response = await fetch(`/appointments/${appointment.secure_token}/cancel`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            // Utiliser Inertia.js au lieu de fetch pour une meilleure gestion
+            router.post(`/appointments/${appointment.secure_token}/cancel`, {}, {
+                onSuccess: () => {
+                    // Recharger la page pour mettre à jour le statut
+                    router.reload();
                 },
+                onError: (errors) => {
+                    console.error('Erreur lors de l\'annulation:', errors);
+                    alert('Une erreur est survenue lors de l\'annulation du rendez-vous.');
+                },
+                onFinish: () => {
+                    setIsCanceling(false);
+                    setShowCancelModal(false);
+                }
             });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Recharger la page pour mettre à jour le statut
-                router.reload();
-            } else {
-                alert(result.message || 'Une erreur est survenue');
-            }
         } catch (error) {
-            alert('Une erreur de connexion est survenue');
-        } finally {
+            console.error('Erreur de connexion:', error);
+            alert('Une erreur de connexion est survenue. Veuillez réessayer.');
             setIsCanceling(false);
             setShowCancelModal(false);
         }

@@ -206,42 +206,70 @@ class PublicController extends Controller
         $appointment = Appointment::where('secure_token', $token)->first();
         
         if (!$appointment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Rendez-vous non trouvé'
-            ], 404);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Rendez-vous non trouvé'
+                ], 404);
+            }
+            
+            return redirect()->back()->withErrors(['error' => 'Rendez-vous non trouvé']);
         }
 
         if (!$appointment->canBeCanceledByRequester()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ce rendez-vous ne peut plus être annulé'
-            ], 422);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ce rendez-vous ne peut plus être annulé'
+                ], 422);
+            }
+            
+            return redirect()->back()->withErrors(['error' => 'Ce rendez-vous ne peut plus être annulé']);
         }
 
-        // Logger l'activité avant l'annulation
-        activity()
-            ->performedOn($appointment)
-            ->withProperties([
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'cancellation_method' => 'requester',
-            ])
-            ->log('Rendez-vous annulé par le demandeur');
+        try {
+            // Logger l'activité avant l'annulation
+            activity()
+                ->performedOn($appointment)
+                ->withProperties([
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'cancellation_method' => 'requester',
+                ])
+                ->log('Rendez-vous annulé par le demandeur');
 
-        $appointment->cancelByRequester();
+            $appointment->cancelByRequester();
 
-        // Envoyer une notification d'annulation au demandeur
-        \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-            ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+            // Envoyer une notification d'annulation au demandeur
+            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
 
-        // Envoyer notification à l'administration (optionnel)
-        // Mail::to(config('mail.admin_email'))->send(new AppointmentCancellation($appointment));
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Votre rendez-vous a été annulé avec succès'
-        ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Votre rendez-vous a été annulé avec succès'
+                ]);
+            }
+            
+            return redirect()->route('appointments.tracking', $token)
+                ->with('success', 'Votre rendez-vous a été annulé avec succès');
+                
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de l\'annulation du rendez-vous', [
+                'appointment_id' => $appointment->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Une erreur est survenue lors de l\'annulation'
+                ], 500);
+            }
+            
+            return redirect()->back()->withErrors(['error' => 'Une erreur est survenue lors de l\'annulation']);
+        }
     }
 
     /**
