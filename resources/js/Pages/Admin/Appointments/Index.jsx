@@ -1232,9 +1232,9 @@ export default function Index({ appointments, stats, filters }) {
                                     <h4 className="text-sm font-medium text-blue-900 mb-2">Détails du rendez-vous :</h4>
                                     <div className="text-sm text-blue-800 space-y-1">
                                         <p><strong>Objet :</strong> {acceptingAppointment?.subject}</p>
-                                        <p><strong>Date :</strong> {acceptingAppointment?.preferred_date}</p>
-                                        <p><strong>Heure :</strong> {acceptingAppointment?.preferred_time}</p>
-                                        <p><strong>Priorité :</strong> {acceptingAppointment?.formatted_priority}</p>
+                                        <p><strong>Date :</strong> {acceptingAppointment?.preferred_date ? new Date(acceptingAppointment.preferred_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Non définie'}</p>
+                                        <p><strong>Heure :</strong> {acceptingAppointment?.preferred_time || 'Non définie'}</p>
+                                        <p><strong>Priorité :</strong> {acceptingAppointment?.priority ? getPriorityDisplay(acceptingAppointment.priority) : 'Non définie'}</p>
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mb-6">

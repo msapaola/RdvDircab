@@ -98,6 +98,19 @@ export default function Show({ appointment, activities }) {
         return colors[priority] || 'gray';
     };
 
+    const getPriorityDisplay = (priority) => {
+        switch (priority) {
+            case 'normal':
+                return 'Normal';
+            case 'urgent':
+                return 'Urgent';
+            case 'official':
+                return 'Officiel';
+            default:
+                return 'Inconnu';
+        }
+    };
+
     return (
         <>
             <Head title={`Rendez-vous - ${appointment.subject}`} />
@@ -393,9 +406,9 @@ export default function Show({ appointment, activities }) {
                                     <h4 className="text-sm font-medium text-blue-900 mb-2">Détails du rendez-vous :</h4>
                                     <div className="text-sm text-blue-800 space-y-1">
                                         <p><strong>Objet :</strong> {appointment.subject}</p>
-                                        <p><strong>Date :</strong> {appointment.preferred_date}</p>
-                                        <p><strong>Heure :</strong> {appointment.preferred_time}</p>
-                                        <p><strong>Priorité :</strong> {appointment.formatted_priority}</p>
+                                        <p><strong>Date :</strong> {appointment.preferred_date ? new Date(appointment.preferred_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Non définie'}</p>
+                                        <p><strong>Heure :</strong> {appointment.preferred_time || 'Non définie'}</p>
+                                        <p><strong>Priorité :</strong> {appointment.priority ? getPriorityDisplay(appointment.priority) : 'Non définie'}</p>
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mb-6">
