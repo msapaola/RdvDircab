@@ -113,7 +113,13 @@ export default function AppointmentUnavailable({ error, appointment = null }) {
                                     <p><strong>Objet :</strong> {appointment.subject}</p>
                                     <p><strong>Demandeur :</strong> {appointment.name}</p>
                                     <p><strong>Date :</strong> {appointment.preferred_date ? new Date(appointment.preferred_date).toLocaleDateString('fr-FR') : 'Non définie'}</p>
-                                    <p><strong>Statut :</strong> {appointment.status}</p>
+                                    <p><strong>Statut :</strong> {
+                                        appointment.status === 'canceled_by_requester' ? 'Annulé par le demandeur' :
+                                        appointment.status === 'canceled' ? 'Annulé par l\'administration' :
+                                        appointment.status === 'expired' ? 'Expiré' :
+                                        appointment.status === 'completed' ? 'Terminé' :
+                                        appointment.status
+                                    }</p>
                                 </div>
                             </div>
                         )}
