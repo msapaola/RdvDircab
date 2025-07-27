@@ -44,12 +44,18 @@ class PublicController extends Controller
         $appointment = Appointment::where('secure_token', $token)->first();
         
         if (!$appointment) {
-            abort(404, 'Rendez-vous non trouvé');
+            return Inertia::render('Public/AppointmentUnavailable', [
+                'error' => 'Rendez-vous non trouvé',
+                'appointment' => null
+            ]);
         }
 
         // Empêcher l'accès aux rendez-vous expirés ou annulés
-        if (in_array($appointment->status, ['expired', 'canceled', 'canceled_by_requester'])) {
-            abort(403, 'Ce rendez-vous n\'est plus accessible');
+        if (in_array($appointment->status, ['expired', 'canceled', 'canceled_by_requester', 'completed'])) {
+            return Inertia::render('Public/AppointmentUnavailable', [
+                'error' => 'Rendez-vous non accessible',
+                'appointment' => $appointment
+            ]);
         }
 
         // Récupérer l'historique des activités
