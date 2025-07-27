@@ -8,7 +8,7 @@ use App\Models\Appointment;
 $app = require_once 'bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-echo "=== Test d'annulation de rendez-vous ===\n\n";
+echo "=== Test final d'annulation ===\n\n";
 
 // Trouver un rendez-vous accepté
 $appointment = Appointment::where('status', 'accepted')->first();
@@ -22,8 +22,6 @@ echo "📋 Rendez-vous trouvé :\n";
 echo "- ID: {$appointment->id}\n";
 echo "- Token: {$appointment->secure_token}\n";
 echo "- Statut: {$appointment->status}\n";
-echo "- Nom: {$appointment->name}\n";
-echo "- Email: {$appointment->email}\n";
 echo "- Date: {$appointment->preferred_date}\n";
 echo "- Heure: {$appointment->preferred_time}\n\n";
 
@@ -32,47 +30,49 @@ echo "🔍 Test de canBeCanceledByRequester() :\n";
 try {
     $canCancel = $appointment->canBeCanceledByRequester();
     echo "- Résultat: " . ($canCancel ? '✅ Oui' : '❌ Non') . "\n";
+    
+    if (!$canCancel) {
+        echo "- ❌ Le rendez-vous ne peut pas être annulé\n";
+        exit;
+    }
 } catch (Exception $e) {
     echo "- ❌ Erreur: " . $e->getMessage() . "\n";
+    exit;
 }
 
-// Tester la méthode cancelByRequester
-echo "\n🔍 Test de cancelByRequester() :\n";
+// Tester l'annulation directe
+echo "\n🔍 Test d'annulation directe :\n";
 try {
     $cancelled = $appointment->cancelByRequester();
     echo "- Résultat: " . ($cancelled ? '✅ Succès' : '❌ Échec') . "\n";
     echo "- Nouveau statut: {$appointment->status}\n";
+    
+    if ($cancelled) {
+        echo "- ✅ L'annulation fonctionne correctement !\n";
+    } else {
+        echo "- ❌ L'annulation a échoué\n";
+    }
 } catch (Exception $e) {
     echo "- ❌ Erreur: " . $e->getMessage() . "\n";
 }
 
-// Tester la route
-echo "\n🌐 Test de la route d'annulation :\n";
+// Tester la route via le contrôleur
+echo "\n🌐 Test via le contrôleur :\n";
 try {
-    $url = "http://localhost/appointments/{$appointment->secure_token}/cancel";
-    echo "- URL: $url\n";
+    $request = new \Illuminate\Http\Request();
+    $controller = new \App\Http\Controllers\PublicController();
+    $response = $controller->cancel($request, $appointment->secure_token);
     
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HEADER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Accept: application/json',
-        'X-Requested-With: XMLHttpRequest'
-    ]);
-    
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    if ($error) {
-        echo "- ❌ Erreur cURL: $error\n";
-    } else {
-        echo "- Code HTTP: $httpCode\n";
-        echo "- Réponse: $response\n";
+    echo "- Type de réponse: " . get_class($response) . "\n";
+    if (method_exists($response, 'getData')) {
+        $data = $response->getData();
+        echo "- Données: " . json_encode($data) . "\n";
+        
+        if (isset($data->success) && $data->success) {
+            echo "- ✅ La route fonctionne correctement !\n";
+        } else {
+            echo "- ❌ La route a retourné une erreur\n";
+        }
     }
 } catch (Exception $e) {
     echo "- ❌ Erreur: " . $e->getMessage() . "\n";
