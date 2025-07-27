@@ -22,6 +22,9 @@ export default function Index({ appointments, stats, filters }) {
     const [bulkReason, setBulkReason] = useState('');
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
     const [autoRefresh, setAutoRefresh] = useState(false);
+    const [showAcceptModal, setShowAcceptModal] = useState(false);
+    const [isAccepting, setIsAccepting] = useState(false);
+    const [acceptingAppointment, setAcceptingAppointment] = useState(null);
 
     // Auto-refresh every 30 seconds if enabled
     useEffect(() => {
@@ -102,9 +105,24 @@ export default function Index({ appointments, stats, filters }) {
     };
 
     const handleAccept = (appointment) => {
-        if (confirm('Êtes-vous sûr de vouloir accepter ce rendez-vous ?')) {
-            router.post(route('admin.appointments.accept', appointment.id));
-        }
+        setAcceptingAppointment(appointment);
+        setShowAcceptModal(true);
+    };
+
+    const confirmAccept = () => {
+        setIsAccepting(true);
+        
+        router.post(route('admin.appointments.accept', acceptingAppointment.id), {}, {
+            onSuccess: () => {
+                setIsAccepting(false);
+                setShowAcceptModal(false);
+                setAcceptingAppointment(null);
+            },
+            onError: () => {
+                setIsAccepting(false);
+                alert('Une erreur est survenue lors de l\'acceptation du rendez-vous.');
+            }
+        });
     };
 
     const handleComplete = (appointment) => {
@@ -1189,6 +1207,85 @@ export default function Index({ appointments, stats, filters }) {
                         <PrimaryButton onClick={handleBulkAction}>
                             Exécuter l'action
                         </PrimaryButton>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal d'acceptation améliorée */}
+            <Modal show={showAcceptModal} onClose={() => !isAccepting && setShowAcceptModal(false)} maxWidth="md">
+                <div className="p-6">
+                    <div className="text-center">
+                        {!isAccepting ? (
+                            <>
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                    Accepter le rendez-vous
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-6">
+                                    Êtes-vous sûr de vouloir accepter le rendez-vous de <strong>{acceptingAppointment?.name}</strong> ?
+                                </p>
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                                    <h4 className="text-sm font-medium text-blue-900 mb-2">Détails du rendez-vous :</h4>
+                                    <div className="text-sm text-blue-800 space-y-1">
+                                        <p><strong>Objet :</strong> {acceptingAppointment?.subject}</p>
+                                        <p><strong>Date :</strong> {acceptingAppointment?.preferred_date}</p>
+                                        <p><strong>Heure :</strong> {acceptingAppointment?.preferred_time}</p>
+                                        <p><strong>Priorité :</strong> {acceptingAppointment?.formatted_priority}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-6">
+                                    Un email de confirmation sera automatiquement envoyé au demandeur.
+                                </p>
+                                <div className="flex justify-end space-x-3">
+                                    <SecondaryButton 
+                                        onClick={() => setShowAcceptModal(false)}
+                                        disabled={isAccepting}
+                                    >
+                                        Annuler
+                                    </SecondaryButton>
+                                    <PrimaryButton 
+                                        onClick={confirmAccept}
+                                        disabled={isAccepting}
+                                        className="bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                                    >
+                                        Accepter le rendez-vous
+                                    </PrimaryButton>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                                    <svg className="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                                    Traitement en cours...
+                                </h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                                        <span className="text-sm text-gray-600">Mise à jour du statut</span>
+                                    </div>
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                        <span className="text-sm text-gray-600">Envoi de l'email de confirmation</span>
+                                    </div>
+                                    <div className="flex items-center justify-center space-x-2">
+                                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                        <span className="text-sm text-gray-600">Finalisation...</span>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-4">
+                                    Veuillez patienter, cette opération peut prendre quelques secondes.
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
             </Modal>
