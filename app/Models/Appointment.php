@@ -170,14 +170,12 @@ class Appointment extends Model
     public function canBeCanceledByRequester(): bool
     {
         if ($this->status === self::STATUS_ACCEPTED) {
-            // Créer une date Carbon avec la date et l'heure
-            $appointmentDateTime = \Carbon\Carbon::parse($this->preferred_date . ' ' . $this->preferred_time);
-            // Permettre l'annulation jusqu'à 1h avant le rendez-vous (au lieu de 24h pour les tests)
-            return now()->isBefore($appointmentDateTime->subHour());
+            $appointmentDateTime = $this->preferred_date->setTimeFrom($this->preferred_time);
+            return now()->isBefore($appointmentDateTime->subDay());
         }
         return false;
     }
-
+        
     public function getCanBeCanceledByRequesterAttribute(): bool
     {
         return $this->canBeCanceledByRequester();
@@ -228,7 +226,7 @@ class Appointment extends Model
      */
     public function getAppointmentDateTimeAttribute()
     {
-        return \Carbon\Carbon::parse($this->preferred_date . ' ' . $this->preferred_time);
+        return $this->preferred_date->setTimeFrom($this->preferred_time);
     }
 
     /**

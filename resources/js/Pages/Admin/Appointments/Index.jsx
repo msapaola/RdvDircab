@@ -459,7 +459,7 @@ export default function Index({ appointments, stats, filters }) {
                                     <option value="50">50</option>
                                     <option value="100">100</option>
                                 </select>
-                            </div>
+                        </div>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -698,8 +698,8 @@ export default function Index({ appointments, stats, filters }) {
                                                         ? 'bg-blue-500 text-white'
                                                         : 'bg-white text-gray-700 hover:bg-gray-50'
                                                         }`}
-                                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                                    />
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
                                                 ) : (
                                                     <span
                                                         key={index}
@@ -712,11 +712,11 @@ export default function Index({ appointments, stats, filters }) {
                                             />
                                                 )
                                         ))}
-                                        </div>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
                     )}
 
                     {/* Vue cartes */}
