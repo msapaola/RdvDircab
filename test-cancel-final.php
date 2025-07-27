@@ -33,6 +33,7 @@ try {
     
     if (!$canCancel) {
         echo "- ❌ Le rendez-vous ne peut pas être annulé\n";
+        echo "- Raison: Probablement trop proche de la date\n";
         exit;
     }
 } catch (Exception $e) {
