@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -11,13 +11,29 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 
-export default function Home({ availableSlots, blockedSlots, businessHours, workingDays }) {
+export default function Home({ availableSlots, blockedSlots, businessHours, workingDays, errors, success, message, tracking_url }) {
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitMessage, setSubmitMessage] = useState(null);
     
     const calendarRef = useRef(null);
+
+    // Gérer les messages de succès et les erreurs depuis les props Inertia
+    useEffect(() => {
+        if (success && message) {
+            setSubmitMessage({
+                type: 'success',
+                message: message,
+                trackingUrl: tracking_url
+            });
+            setShowAppointmentModal(false);
+            // Recharger le calendrier
+            if (calendarRef.current) {
+                calendarRef.current.getApi().refetchEvents();
+            }
+        }
+    }, [success, message, tracking_url]);
 
     const appointmentForm = useForm({
         name: '',
@@ -107,89 +123,12 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
         setIsSubmitting(true);
         setSubmitMessage(null);
 
-        // Utiliser XMLHttpRequest pour éviter les problèmes CSRF
-        const xhr = new XMLHttpRequest();
-        
-        xhr.open('POST', '/appointments', true);
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        
-        xhr.onload = function() {
-            if (xhr.status === 200 || xhr.status === 201) {
-                try {
-                    const result = JSON.parse(xhr.responseText);
-                    if (result.success) {
-                        setSubmitMessage({
-                            type: 'success',
-                            message: result.message,
-                            trackingUrl: result.tracking_url
-                        });
-                        setShowAppointmentModal(false);
-                        // Recharger le calendrier
-                        if (calendarRef.current) {
-                            calendarRef.current.getApi().refetchEvents();
-                        }
-                    } else {
-                        setSubmitMessage({
-                            type: 'error',
-                            message: result.message || 'Une erreur est survenue',
-                            errors: result.errors
-                        });
-                    }
-                } catch (e) {
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de parsing de la réponse'
-                    });
-                }
-            } else if (xhr.status === 419) {
-                setSubmitMessage({
-                    type: 'error',
-                    message: 'Erreur CSRF - Page expirée. Veuillez rafraîchir la page.'
-                });
-            } else if (xhr.status === 422) {
-                try {
-                    const result = JSON.parse(xhr.responseText);
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de validation',
-                        errors: result.errors
-                    });
-                } catch (e) {
-                    setSubmitMessage({
-                        type: 'error',
-                        message: 'Erreur de validation'
-                    });
-                }
-            } else {
-                setSubmitMessage({
-                    type: 'error',
-                    message: `Erreur serveur (${xhr.status}): ${xhr.statusText}`
-                });
+        // Utiliser Inertia.js pour une meilleure gestion des erreurs
+        router.post('/appointments', formData, {
+            onFinish: () => {
+                setIsSubmitting(false);
             }
-            setIsSubmitting(false);
-        };
-        
-        xhr.onerror = function() {
-            setSubmitMessage({
-                type: 'error',
-                message: 'Erreur de connexion au serveur'
-            });
-            setIsSubmitting(false);
-        };
-        
-        xhr.ontimeout = function() {
-            setSubmitMessage({
-                type: 'error',
-                message: 'Délai d\'attente dépassé'
-            });
-            setIsSubmitting(false);
-        };
-        
-        xhr.timeout = 30000; // 30 secondes
-        
-        // Envoyer le FormData
-        xhr.send(formData);
+        });
     };
 
     const closeModal = () => {
@@ -400,6 +339,7 @@ export default function Home({ availableSlots, blockedSlots, businessHours, work
                         isSubmitting={isSubmitting}
                         selectedSlot={selectedSlot}
                         onCancel={closeModal}
+                        errors={errors || {}}
                     />
                 </div>
             </Modal>

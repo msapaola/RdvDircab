@@ -5,7 +5,7 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 
-export default function AppointmentForm({ form, onSubmit, isSubmitting, selectedSlot, onCancel }) {
+export default function AppointmentForm({ form, onSubmit, isSubmitting, selectedSlot, onCancel, errors }) {
     const [attachments, setAttachments] = useState([]);
 
     const handleSubmit = (e) => {
@@ -66,6 +66,25 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Erreurs générales */}
+            {(errors.slot || errors.timing || errors.rate_limit) && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex">
+                        <svg className="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <div>
+                            <h3 className="text-sm font-medium text-red-800">Erreur</h3>
+                            <div className="text-sm text-red-700 mt-1">
+                                {errors.slot && <p>{errors.slot}</p>}
+                                {errors.timing && <p>{errors.timing}</p>}
+                                {errors.rate_limit && <p>{errors.rate_limit}</p>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {/* Informations personnelles */}
             <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Informations personnelles</h3>
@@ -81,7 +100,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                             onChange={(e) => form.setData('name', e.target.value)}
                             required
                         />
-                        <InputError message={form.errors.name} className="mt-2" />
+                        <InputError message={errors.name || form.errors.name} className="mt-2" />
                     </div>
 
                     <div>
@@ -94,7 +113,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                             onChange={(e) => form.setData('email', e.target.value)}
                             required
                         />
-                        <InputError message={form.errors.email} className="mt-2" />
+                        <InputError message={errors.email || form.errors.email} className="mt-2" />
                     </div>
                 </div>
 
@@ -109,7 +128,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                         placeholder="+243 XXX XXX XXX"
                         required
                     />
-                    <InputError message={form.errors.phone} className="mt-2" />
+                                            <InputError message={errors.phone || form.errors.phone} className="mt-2" />
                 </div>
             </div>
 
@@ -128,7 +147,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                         placeholder="Ex: Demande d'audience pour projet urbain"
                         required
                     />
-                    <InputError message={form.errors.subject} className="mt-2" />
+                                            <InputError message={errors.subject || form.errors.subject} className="mt-2" />
                 </div>
 
                 <div className="mt-6">
@@ -141,7 +160,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                         onChange={(e) => form.setData('message', e.target.value)}
                         placeholder="Décrivez en détail l'objet de votre visite..."
                     />
-                    <InputError message={form.errors.message} className="mt-2" />
+                                            <InputError message={errors.message || form.errors.message} className="mt-2" />
                 </div>
             </div>
 
@@ -172,7 +191,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                             min={new Date().toISOString().split('T')[0]}
                             required
                         />
-                        <InputError message={form.errors.preferred_date} className="mt-2" />
+                        <InputError message={errors.preferred_date || form.errors.preferred_date} className="mt-2" />
                     </div>
 
                     <div>
@@ -187,7 +206,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                             max="17:00"
                             required
                         />
-                        <InputError message={form.errors.preferred_time} className="mt-2" />
+                        <InputError message={errors.preferred_time || form.errors.preferred_time} className="mt-2" />
                     </div>
                 </div>
             </div>
@@ -209,7 +228,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                         <option value="urgent">Demande urgente</option>
                         <option value="official">Demande officielle</option>
                     </select>
-                    <InputError message={form.errors.priority} className="mt-2" />
+                                            <InputError message={errors.priority || form.errors.priority} className="mt-2" />
                     
                     <p className="mt-2 text-sm text-gray-600">
                         {getPriorityDescription(form.data.priority)}
@@ -234,7 +253,7 @@ export default function AppointmentForm({ form, onSubmit, isSubmitting, selected
                     <p className="mt-2 text-xs text-gray-500">
                         Formats acceptés : PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (max 5MB par fichier, max 5 fichiers)
                     </p>
-                    <InputError message={form.errors.attachments} className="mt-2" />
+                                            <InputError message={errors.attachments || form.errors.attachments} className="mt-2" />
                 </div>
 
                 {/* Liste des fichiers sélectionnés */}

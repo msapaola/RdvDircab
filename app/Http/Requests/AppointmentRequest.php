@@ -90,8 +90,8 @@ class AppointmentRequest extends FormRequest
                 'max:5', // Max 5 fichiers
             ],
             'g-recaptcha-response' => [
-                'required',
-                'recaptcha', // Si Google reCAPTCHA est configuré
+                'nullable', // Optionnel pour l'instant
+                // 'recaptcha', // Si Google reCAPTCHA est configuré
             ],
         ];
     }
@@ -125,8 +125,8 @@ class AppointmentRequest extends FormRequest
             'attachments.*.max' => 'Chaque fichier ne peut pas dépasser 10MB.',
             'attachments.*.mimes' => 'Seuls les fichiers PDF, DOC, DOCX, JPG, JPEG et PNG sont autorisés.',
             'attachments.max' => 'Vous ne pouvez joindre que 5 fichiers maximum.',
-            'g-recaptcha-response.required' => 'Veuillez valider le reCAPTCHA.',
-            'g-recaptcha-response.recaptcha' => 'La validation reCAPTCHA a échoué.',
+            // 'g-recaptcha-response.required' => 'Veuillez valider le reCAPTCHA.',
+            // 'g-recaptcha-response.recaptcha' => 'La validation reCAPTCHA a échoué.',
         ];
     }
 

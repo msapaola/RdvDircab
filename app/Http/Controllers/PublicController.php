@@ -84,18 +84,18 @@ class PublicController extends Controller
             'url' => $request->url(),
         ]);
 
-        // Validation des données
+        // Validation des données avec AppointmentRequest
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
-            'subject' => 'required|string|max:255',
-            'message' => 'nullable|string|max:1000',
+            'subject' => 'required|string|min:10|max:500',
+            'message' => 'nullable|string|max:2000',
             'preferred_date' => 'required|date|after:today',
             'preferred_time' => 'required|date_format:H:i',
             'priority' => 'required|in:normal,urgent,official',
             'attachments' => 'nullable|array|max:5',
-            'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:5120',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -104,10 +104,8 @@ class PublicController extends Controller
                 'data' => $request->except(['attachments']),
             ]);
             
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            // Retourner les erreurs pour Inertia
+            return back()->withErrors($validator->errors());
         }
 
         // Vérifier le rate limiting (max 3 demandes par email par jour)
@@ -121,10 +119,7 @@ class PublicController extends Controller
                 'requests_today' => $todayRequests,
             ]);
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.'
-            ], 429);
+            return back()->withErrors(['rate_limit' => 'Vous avez atteint la limite de 3 demandes par jour. Veuillez réessayer demain.']);
         }
 
         // Vérifier si le créneau est disponible
@@ -136,10 +131,7 @@ class PublicController extends Controller
                 'time' => $request->preferred_time,
             ]);
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.'
-            ], 422);
+            return back()->withErrors(['slot' => 'Ce créneau n\'est plus disponible. Veuillez choisir un autre horaire.']);
         }
 
         // Vérifier la règle des 24h (sauf urgence)
@@ -152,10 +144,7 @@ class PublicController extends Controller
                     'priority' => $request->priority,
                 ]);
                 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).'
-                ], 422);
+                return back()->withErrors(['timing' => 'Les rendez-vous doivent être demandés au moins 24h à l\'avance (sauf urgence).']);
             }
         }
 
@@ -197,10 +186,11 @@ class PublicController extends Controller
         // Envoyer l'email de confirmation (sera implémenté plus tard)
         // Mail::to($appointment->email)->send(new AppointmentConfirmation($appointment));
 
-        return response()->json([
+        // Retourner une réponse Inertia
+        return back()->with([
             'success' => true,
-            'message' => 'Votre demande a été soumise avec succès. Vous recevrez un email de confirmation avec un lien de suivi.',
-            'tracking_url' => $appointment->tracking_url,
+            'message' => 'Votre demande de rendez-vous a été envoyée avec succès.',
+            'tracking_url' => route('appointments.tracking', $appointment->secure_token)
         ]);
     }
 
