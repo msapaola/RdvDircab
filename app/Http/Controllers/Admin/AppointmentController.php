@@ -85,10 +85,19 @@ class AppointmentController extends Controller
     public function accept(Request $request, Appointment $appointment)
     {
         if ($appointment->accept(auth()->user())) {
-            // Envoyer la notification au demandeur
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
+            // Envoyer la notification au demandeur (avec gestion d'erreur SMTP)
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::warning('Erreur SMTP lors de l\'envoi de notification d\'acceptation', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()->with('success', 'Rendez-vous accepté avec succès. (Notification email non envoyée - problème de serveur SMTP)');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible d\'accepter ce rendez-vous.');
@@ -101,9 +110,19 @@ class AppointmentController extends Controller
         ]);
 
         if ($appointment->reject(auth()->user(), $request->rejection_reason)) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
+            // Envoyer la notification au demandeur (avec gestion d'erreur SMTP)
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::warning('Erreur SMTP lors de l\'envoi de notification de refus', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()->with('success', 'Rendez-vous refusé avec succès. (Notification email non envoyée - problème de serveur SMTP)');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible de refuser ce rendez-vous.');
@@ -116,9 +135,19 @@ class AppointmentController extends Controller
         ]);
 
         if ($appointment->cancel(auth()->user(), $request->admin_notes)) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
+            // Envoyer la notification au demandeur (avec gestion d'erreur SMTP)
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::warning('Erreur SMTP lors de l\'envoi de notification d\'annulation', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()->with('success', 'Rendez-vous annulé avec succès. (Notification email non envoyée - problème de serveur SMTP)');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible d\'annuler ce rendez-vous.');
@@ -163,9 +192,19 @@ class AppointmentController extends Controller
     public function complete(Request $request, Appointment $appointment)
     {
         if ($appointment->markAsCompleted(auth()->user())) {
-            \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
-                ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
-            return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
+            // Envoyer la notification au demandeur (avec gestion d'erreur SMTP)
+            try {
+                \Illuminate\Support\Facades\Notification::route('mail', $appointment->email)
+                    ->notify(new \App\Notifications\AppointmentStatusUpdate($appointment));
+                return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. Le demandeur a été notifié.');
+            } catch (\Exception $e) {
+                \Log::warning('Erreur SMTP lors de l\'envoi de notification de finalisation', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()->with('success', 'Rendez-vous marqué comme terminé. (Notification email non envoyée - problème de serveur SMTP)');
+            }
         }
 
         return redirect()->back()->with('error', 'Impossible de marquer ce rendez-vous comme terminé.');
